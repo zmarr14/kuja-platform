@@ -46,11 +46,35 @@ db.exec(`
 `);
 
 function seedAdmin() {
+  // Seed admin account
   const existing = db.prepare('SELECT id FROM admin WHERE email = ?').get(process.env.ADMIN_EMAIL);
   if (!existing) {
     const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12);
     db.prepare('INSERT INTO admin (email, password) VALUES (?, ?)').run(process.env.ADMIN_EMAIL, hash);
     console.log('✅ Admin account created:', process.env.ADMIN_EMAIL);
+  }
+
+  // Seed Kuja AI as a permanent client with a FIXED api_key
+  // This means it survives every redeploy
+  const KUJA_API_KEY = 'kuja_7828916b91d242599da5efe7692840fa';
+  const KUJA_CLIENT_ID = 'kuja-ai-client-permanent-001';
+
+  const existingClient = db.prepare('SELECT id FROM clients WHERE id = ?').get(KUJA_CLIENT_ID);
+  if (!existingClient) {
+    const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'kujaai2026', 12);
+    db.prepare(`
+      INSERT INTO clients (id, name, email, password, agency_name, website, api_key, plan)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+    `).run(
+      KUJA_CLIENT_ID,
+      'Ezekiel',
+      process.env.ADMIN_EMAIL || 'info@kujaai.com',
+      hash,
+      'Kuja AI',
+      'https://kujaai.com',
+      KUJA_API_KEY
+    );
+    console.log('✅ Kuja AI client seeded with API key:', KUJA_API_KEY);
   }
 }
 
