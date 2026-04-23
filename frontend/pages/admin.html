@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuja AI — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0d0d0d;
+      --cream: #f5f0e8;
+      --cream-mid: #f0ebe0;
+      --gold: #c9a84c;
+      --gold-light: #e8d5a3;
+      --white: #ffffff;
+      --mid: #6b6560;
+      --border: rgba(201,168,76,0.25);
+      --border-subtle: rgba(0,0,0,0.07);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(13,13,13,0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+    }
+    .logo { display: inline-flex; align-items: center; text-decoration: none; }
+    .logo svg { height: 40px; width: auto; display: block; }
+    .admin-badge {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.35); padding: 0.2rem 0.6rem; border-radius: 2px;
+      margin-left: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+    .logout-btn { font-size: 0.82rem; font-weight: 500; color: rgba(245,240,232,0.45); cursor: pointer; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--gold); }
+
+    /* ── LAYOUT ── */
+    .layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 66px); }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--ink);
+      border-right: 1px solid rgba(255,255,255,0.05);
+      padding: 2rem 1.5rem;
+      position: sticky; top: 66px; height: calc(100vh - 66px); overflow-y: auto;
+    }
+    .sidebar-section {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(201,168,76,0.6);
+      margin-bottom: 0.75rem; margin-top: 1.5rem;
+    }
+    .sidebar-section:first-child { margin-top: 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.6rem 0.75rem; border-radius: 2px;
+      font-size: 0.875rem; font-weight: 500; color: rgba(245,240,232,0.5);
+      cursor: pointer; transition: all 0.15s; text-decoration: none;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--cream); }
+    .nav-item.active { background: var(--gold); color: var(--ink); }
+    .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
+
+    /* ── MAIN ── */
+    .main { padding: 2.5rem 3rem; }
+
+    .page-header { margin-bottom: 2.5rem; }
+    .page-label {
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
+    }
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .page-title em { font-style: italic; color: var(--gold); }
+    .page-sub { font-size: 0.9rem; color: var(--mid); margin-top: 0.4rem; }
+
+    /* ── STATS ── */
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .stat {
+      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px;
+      padding: 1.5rem; transition: box-shadow 0.2s;
+    }
+    .stat:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .stat-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.5rem; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; line-height: 1; color: var(--ink); }
+    .stat-value.gold { color: var(--gold); }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 3rem; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 0.7rem 1.4rem; border-radius: 2px; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0.03em; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--ink); color: var(--cream); }
+    .btn-primary:hover { background: var(--gold); color: var(--ink); }
+    .btn-ghost { background: transparent; color: var(--mid); border: 1px solid var(--border-subtle); }
+    .btn-ghost:hover { background: var(--cream); color: var(--ink); }
+    .btn-danger { background: transparent; color: #c0392b; border: 1px solid rgba(192,57,43,0.2); }
+    .btn-danger:hover { background: rgba(192,57,43,0.06); }
+    .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.78rem; }
+    .btn-gold { background: var(--gold); color: var(--ink); }
+    .btn-gold:hover { opacity: 0.85; }
+
+    /* ── CLIENT CARDS ── */
+    .clients-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .client-card {
+      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px;
+      padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; gap: 1.25rem;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .client-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); border-color: var(--border); }
+    .client-avatar {
+      width: 44px; height: 44px; border-radius: 2px; flex-shrink: 0;
+      background: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.2rem; color: var(--gold);
+    }
+    .client-info { flex: 1; min-width: 0; }
+    .client-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.75rem; }
+    .client-meta { font-size: 0.8rem; color: var(--mid); margin-bottom: 0.25rem; }
+    .client-stats { display: flex; gap: 1.5rem; }
+    .c-stat { font-size: 0.78rem; color: var(--mid); }
+    .c-stat strong { color: var(--ink); font-weight: 500; }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.2rem 0.6rem; border-radius: 2px;
+    }
+    .status-active { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid var(--border); }
+    .status-inactive { background: rgba(192,57,43,0.08); color: #c0392b; border: 1px solid rgba(192,57,43,0.2); }
+    .client-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+    /* ── LEADS TABLE ── */
+    .leads-table { background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px; overflow: hidden; }
+    .table-head {
+      display: grid; grid-template-columns: 1.5fr 1fr 100px 120px 100px;
+      padding: 0.8rem 1.5rem;
+      background: var(--cream-mid);
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .table-row {
+      display: grid; grid-template-columns: 1.5fr 1fr 100px 120px 100px;
+      padding: 1rem 1.5rem; font-size: 0.85rem;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.1s; cursor: default;
+    }
+    .table-row:last-child { border-bottom: none; }
+    .table-row:hover { background: var(--cream); }
+    .table-row > div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(13,13,13,0.65); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; padding: 2rem;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px;
+      width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
+      transform: translateY(12px); transition: transform 0.2s;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.2);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header {
+      padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--white); z-index: 1;
+    }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 900; }
+    .modal-close {
+      width: 30px; height: 30px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border-subtle); border-radius: 2px;
+      color: var(--mid); font-size: 14px; transition: all 0.15s;
+    }
+    .modal-close:hover { background: var(--cream-mid); color: var(--ink); }
+    .modal-body { padding: 1.5rem 2rem 2rem; }
+
+    .form-field { margin-bottom: 1.1rem; }
+    .form-field label { display: block; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.4rem; }
+    .form-field input {
+      width: 100%; background: var(--white); border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 2px; padding: 0.75rem 1rem;
+      color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .form-field input:focus { border-color: var(--gold); }
+    .form-field input::placeholder { color: #c0bab3; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .api-key-box {
+      background: var(--cream); border: 1px solid var(--border); border-radius: 2px;
+      padding: 0.75rem 1rem; font-family: monospace; font-size: 0.78rem; color: var(--gold);
+      word-break: break-all; line-height: 1.5;
+    }
+    .field-error { font-size: 0.78rem; color: #c0392b; margin-top: 0.75rem; display: none; }
+    .field-error.show { display: block; }
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+
+    /* Spinner */
+    .detail-row { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: baseline; }
+    .detail-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); width: 70px; flex-shrink: 0; }
+    .detail-value { font-size: 0.9rem; color: var(--ink); }
+    .spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 3rem auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 1100px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main { padding: 1.5rem; } .stats { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center">
+    <a class="logo" href="https://kujaai.com">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 370 100" height="40">
+        <g transform="translate(6,2) scale(0.83)">
+          <ellipse cx="62" cy="66" rx="54" ry="52" fill="rgba(255,255,255,0.12)"/><ellipse cx="24" cy="72" rx="18" ry="20" fill="rgba(255,255,255,0.12)"/><ellipse cx="100" cy="72" rx="18" ry="20" fill="rgba(255,255,255,0.12)"/><ellipse cx="38" cy="26" rx="18" ry="16" fill="rgba(255,255,255,0.12)"/><ellipse cx="86" cy="26" rx="18" ry="16" fill="rgba(255,255,255,0.12)"/><ellipse cx="62" cy="20" rx="22" ry="16" fill="rgba(255,255,255,0.12)"/><ellipse cx="62" cy="68" rx="38" ry="36" fill="rgba(255,255,255,0.07)"/>
+          <ellipse cx="34" cy="35" rx="13" ry="15" fill="rgba(255,255,255,0.1)" transform="rotate(-15 34 35)"/><ellipse cx="90" cy="35" rx="13" ry="15" fill="rgba(255,255,255,0.1)" transform="rotate(15 90 35)"/>
+          <ellipse cx="48" cy="62" rx="9" ry="9" fill="rgba(255,255,255,0.8)"/><ellipse cx="48" cy="62" rx="4.5" ry="4.5" fill="#0d0d0d"/><ellipse cx="50" cy="60" rx="2" ry="2" fill="white"/>
+          <ellipse cx="76" cy="62" rx="9" ry="9" fill="rgba(255,255,255,0.8)"/><ellipse cx="76" cy="62" rx="4.5" ry="4.5" fill="#0d0d0d"/><ellipse cx="78" cy="60" rx="2" ry="2" fill="white"/>
+          <ellipse cx="62" cy="77" rx="10" ry="7" fill="#0d0d0d"/>
+          <path d="M52 82 Q62 90 72 82" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <circle cx="62" cy="45" r="4" fill="#c9a84c"/><circle cx="62" cy="45" r="2" fill="#0d0d0d"/>
+          <line x1="62" y1="41" x2="62" y2="37" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><line x1="65.5" y1="42.5" x2="68" y2="39" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><line x1="58.5" y1="42.5" x2="56" y2="39" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+        <text x="110" y="58" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="700" fill="#f5f0e8" letter-spacing="-1">KUJA</text>
+        <text x="222" y="58" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="700" fill="#c9a84c" letter-spacing="-1"> AI</text>
+        <text x="112" y="75" font-family="'Helvetica Neue',Arial,sans-serif" font-size="9.5" fill="rgba(245,240,232,0.35)" letter-spacing="3">INTELLIGENCE FOR BUSINESS</text>
+      </svg>
+    </a>
+    <span class="admin-badge">Admin</span>
+  </div>
+  <div class="nav-right">
+    <span class="logout-btn" onclick="logout()">Sign out →</span>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">Management</div>
+    <div class="nav-item active" onclick="showSection('clients', this)">
+      <span class="icon">◈</span> Clients
+    </div>
+    <div class="nav-item" onclick="showSection('leads', this)">
+      <span class="icon">◉</span> All Leads
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-label">Admin Panel</div>
+      <div class="page-title">Kuja AI <em>Dashboard</em></div>
+      <div class="page-sub">Manage all clients and view leads across the platform</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Active Clients</div>
+        <div class="stat-value" id="statClients">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Monthly Revenue</div>
+        <div class="stat-value gold" id="statMRR">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total Leads</div>
+        <div class="stat-value" id="statLeads">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Today</div>
+        <div class="stat-value" id="statToday">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">This Week</div>
+        <div class="stat-value" id="statWeek">—</div>
+      </div>
+    </div>
+
+    <!-- Clients Section -->
+    <div class="section" id="sectionClients">
+      <div class="section-header">
+        <div class="section-title">Clients</div>
+        <button class="btn btn-primary btn-sm" onclick="openAddClient()">+ Add Client</button>
+      </div>
+      <div class="clients-list" id="clientsList"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Leads Section -->
+    <div class="section" id="sectionLeads" style="display:none">
+      <div class="section-header">
+        <div class="section-title">All Leads</div>
+      </div>
+      <div class="leads-table">
+        <div class="table-head">
+          <div>Contact</div><div>Agency</div><div>Phone</div><div>Email</div><div>Time</div>
+        </div>
+        <div id="leadsBody"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Lead Detail Modal -->
+<div class="modal-overlay" id="leadDetailModal" onclick="closeLeadDetail(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="leadModalTitle">Lead Details</div>
+      <div class="modal-close" onclick="closeLeadDetail()">&#10005;</div>
+    </div>
+    <div class="modal-body" id="leadModalBody"></div>
+  </div>
+</div>
+
+<!-- Add/Edit Client Modal -->
+<div class="modal-overlay" id="clientModal" onclick="closeClientModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add New Client</div>
+      <div class="modal-close" onclick="closeClientModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Contact Name</label>
+          <input type="text" id="f_name" placeholder="Paco Yip">
+        </div>
+        <div class="form-field">
+          <label>Agency Name</label>
+          <input type="text" id="f_agency" placeholder="Trusted Property">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Login Email</label>
+          <input type="email" id="f_email" placeholder="paco@agency.com">
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" id="f_password" placeholder="Min 8 characters">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Website</label>
+        <input type="text" id="f_website" placeholder="https://trustedproperty.co">
+      </div>
+      <div id="apiKeySection" style="display:none">
+        <div class="form-field">
+          <label>Chatbot API Key — paste this into the client's chatbot HTML</label>
+          <div class="api-key-box" id="apiKeyVal"></div>
+        </div>
+      </div>
+      <div class="field-error" id="formErr"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="saveBtn" onclick="saveClient()" style="flex:1">Save Client</button>
+        <button class="btn btn-ghost" onclick="closeClientModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = window.location.origin;
+  const token = localStorage.getItem('kuja_token');
+  const role = localStorage.getItem('kuja_role');
+  if (!token || role !== 'admin') window.location.href = '/';
+
+  function authH() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+
+  function showSection(section, el) {
+    document.getElementById('sectionClients').style.display = section === 'clients' ? '' : 'none';
+    document.getElementById('sectionLeads').style.display = section === 'leads' ? '' : 'none';
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    if (el) el.classList.add('active');
+    if (section === 'leads') loadAllLeads();
+  }
+
+  async function loadStats() {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/stats`, { headers: authH() });
+      const d = await res.json();
+      document.getElementById('statClients').textContent = d.totalClients;
+      document.getElementById('statMRR').textContent = '$' + d.mrr.toLocaleString();
+      document.getElementById('statLeads').textContent = d.totalLeads;
+      document.getElementById('statToday').textContent = d.leadsToday;
+      document.getElementById('statWeek').textContent = d.leadsThisWeek;
+    } catch(e) { console.error(e); }
+  }
+
+  async function loadClients() {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/clients`, { headers: authH() });
+      const data = await res.json();
+      const list = document.getElementById('clientsList');
+      if (!data.clients || !data.clients.length) {
+        list.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--mid)">No clients yet. Add your first one above.</div>';
+        return;
+      }
+      list.innerHTML = data.clients.map(c => `
+        <div class="client-card">
+          <div class="client-avatar">${(c.agency_name || 'C').charAt(0).toUpperCase()}</div>
+          <div class="client-info">
+            <div class="client-name">
+              ${c.agency_name}
+              <span class="status-pill ${c.plan === 'active' ? 'status-active' : 'status-inactive'}">
+                ${c.plan === 'active' ? '● Active' : '● Inactive'}
+              </span>
+            </div>
+            <div class="client-meta">${c.name} · ${c.email}${c.website ? ` · <a href="${c.website}" target="_blank" style="color:var(--gold)">${c.website}</a>` : ''}</div>
+            <div class="client-stats">
+              <div class="c-stat">Leads: <strong>${c.lead_count || 0}</strong></div>
+              <div class="c-stat">Last lead: <strong>${c.last_lead_at ? relTime(c.last_lead_at) : 'never'}</strong></div>
+              <div class="c-stat">Joined: <strong>${shortDate(c.created_at)}</strong></div>
+            </div>
+          </div>
+          <div class="client-actions">
+            <button class="btn btn-ghost btn-sm" onclick="viewApiKey('${c.id}')">API Key</button>
+            <button class="btn btn-ghost btn-sm" onclick='editClient(${JSON.stringify(c).replace(/"/g,"&quot;")})'>Edit</button>
+            ${c.plan === 'active'
+              ? `<button class="btn btn-danger btn-sm" onclick="deactivate('${c.id}')">Deactivate</button>`
+              : `<button class="btn btn-gold btn-sm" onclick="reactivate('${c.id}')">Reactivate</button>`
+            }
+          </div>
+        </div>`).join('');
+    } catch(e) { document.getElementById('clientsList').innerHTML = '<div style="color:#c0392b;padding:1rem">Failed to load clients.</div>'; }
+  }
+
+  let allAdminLeads = [];
+
+  async function loadAllLeads() {
+    const body = document.getElementById('leadsBody');
+    body.innerHTML = '<div class="spinner"></div>';
+    try {
+      const res = await fetch(`${API_BASE}/api/leads/admin/all?limit=100`, { headers: authH() });
+      const data = await res.json();
+      allAdminLeads = data.leads || [];
+      if (!allAdminLeads.length) {
+        body.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--mid)">No leads yet.</div>';
+        return;
+      }
+      body.innerHTML = allAdminLeads.map((l, i) => `
+        <div class="table-row" onclick="openLeadDetail(${i})" style="cursor:pointer" title="Click to view full details">
+          <div style="font-weight:500">${l.name || l.email || '—'}</div>
+          <div style="color:var(--mid)">${l.agency_name}</div>
+          <div>${l.phone || '—'}</div>
+          <div style="font-size:0.78rem;color:var(--mid)">${l.email || '—'}</div>
+          <div style="color:var(--mid);font-size:0.78rem">${relTime(l.created_at)}</div>
+        </div>`).join('');
+    } catch(e) { body.innerHTML = '<div style="color:#c0392b;padding:1rem">Failed to load.</div>'; }
+  }
+
+  function openLeadDetail(index) {
+    const l = allAdminLeads[index];
+    if (!l) return;
+    const transcriptHtml = l.transcript
+      ? l.transcript.split('\n').filter(line => line.trim()).map(line => {
+          if (line.startsWith('Visitor:')) return `<p style="margin:0 0 8px;font-weight:500;color:#0d0d0d">${line}</p>`;
+          if (line.startsWith('Bot:')) return `<p style="margin:0 0 8px;color:#6b6560">${line}</p>`;
+          return `<p style="margin:0 0 4px;color:#aaa;font-size:0.75rem">${line}</p>`;
+        }).join('')
+      : '<p style="color:#aaa">No transcript recorded.</p>';
+
+    document.getElementById('leadModalTitle').textContent = l.name || l.email || 'Lead Details';
+    document.getElementById('leadModalBody').innerHTML = `
+      ${l.name ? `<div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">${l.name}</div></div>` : ''}
+      ${l.phone ? `<div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value"><a href="tel:${l.phone}" style="color:var(--gold)">${l.phone}</a></div></div>` : ''}
+      ${l.email ? `<div class="detail-row"><div class="detail-label">Email</div><div class="detail-value"><a href="mailto:${l.email}" style="color:var(--gold)">${l.email}</a></div></div>` : ''}
+      <div class="detail-row"><div class="detail-label">Agency</div><div class="detail-value">${l.agency_name || '—'}</div></div>
+      <div class="detail-row"><div class="detail-label">Captured</div><div class="detail-value">${new Date(l.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Brisbane', dateStyle: 'medium', timeStyle: 'short' })}</div></div>
+      ${l.source_page ? `<div class="detail-row"><div class="detail-label">Source</div><div class="detail-value" style="font-size:0.8rem;word-break:break-all">${l.source_page}</div></div>` : ''}
+      <div style="margin-top:1.25rem">
+        <div style="font-size:0.72rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:0.75rem">Conversation Transcript</div>
+        <div style="background:var(--cream);border:1px solid var(--border);border-radius:2px;padding:1.25rem;max-height:280px;overflow-y:auto;font-size:0.83rem;line-height:1.55">${transcriptHtml}</div>
+      </div>`;
+    document.getElementById('leadDetailModal').classList.add('open');
+  }
+
+  function closeLeadDetail(e) {
+    if (e && e.target !== document.getElementById('leadDetailModal')) return;
+    document.getElementById('leadDetailModal').classList.remove('open');
+  }
+
+  let editMode = false;
+
+  function openAddClient() {
+    editMode = false;
+    document.getElementById('modalTitle').textContent = 'Add New Client';
+    document.getElementById('editId').value = '';
+    ['f_name','f_agency','f_email','f_password','f_website'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f_password').placeholder = 'Min 8 characters';
+    document.getElementById('apiKeySection').style.display = 'none';
+    document.getElementById('formErr').classList.remove('show');
+    document.getElementById('saveBtn').textContent = 'Save Client';
+    document.getElementById('clientModal').classList.add('open');
+  }
+
+  function editClient(c) {
+    editMode = true;
+    document.getElementById('modalTitle').textContent = 'Edit Client';
+    document.getElementById('editId').value = c.id;
+    document.getElementById('f_name').value = c.name || '';
+    document.getElementById('f_agency').value = c.agency_name || '';
+    document.getElementById('f_email').value = c.email || '';
+    document.getElementById('f_password').value = '';
+    document.getElementById('f_password').placeholder = 'Leave blank to keep current';
+    document.getElementById('f_website').value = c.website || '';
+    document.getElementById('apiKeySection').style.display = 'none';
+    document.getElementById('formErr').classList.remove('show');
+    document.getElementById('saveBtn').textContent = 'Save Changes';
+    document.getElementById('clientModal').classList.add('open');
+  }
+
+  async function viewApiKey(clientId) {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/clients/${clientId}/api-key`, { headers: authH() });
+      const data = await res.json();
+      prompt(`API Key for ${data.agencyName} — copy this into their chatbot HTML:`, data.apiKey);
+    } catch(e) { alert('Failed to load API key'); }
+  }
+
+  async function saveClient() {
+    const btn = document.getElementById('saveBtn');
+    const errEl = document.getElementById('formErr');
+    errEl.classList.remove('show');
+    const body = {
+      name: document.getElementById('f_name').value.trim(),
+      agency_name: document.getElementById('f_agency').value.trim(),
+      email: document.getElementById('f_email').value.trim(),
+      website: document.getElementById('f_website').value.trim(),
+    };
+    const pw = document.getElementById('f_password').value;
+    if (pw) body.password = pw;
+    if (!body.name || !body.agency_name || !body.email) { showErr('Name, agency and email are required.'); return; }
+    if (!editMode && !pw) { showErr('Password is required for new clients.'); return; }
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      const clientId = document.getElementById('editId').value;
+      const url = editMode ? `${API_BASE}/api/admin/clients/${clientId}` : `${API_BASE}/api/admin/clients`;
+      const method = editMode ? 'PATCH' : 'POST';
+      const res = await fetch(url, { method, headers: authH(), body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) { showErr(data.error || 'Failed to save.'); return; }
+      if (!editMode && data.client.api_key) {
+        document.getElementById('apiKeyVal').textContent = data.client.api_key;
+        document.getElementById('apiKeySection').style.display = '';
+        btn.textContent = 'Client Created ✓';
+      } else {
+        closeClientModal(); 
+      }
+      loadClients(); loadStats();
+    } catch(e) { showErr('Connection error.'); }
+    finally { btn.disabled = false; if (editMode) btn.textContent = 'Save Changes'; }
+  }
+
+  async function deactivate(id) {
+    if (!confirm('Deactivate this client? Their chatbot will stop accepting leads.')) return;
+    await fetch(`${API_BASE}/api/admin/clients/${id}`, { method: 'DELETE', headers: authH() });
+    loadClients(); loadStats();
+  }
+
+  async function reactivate(id) {
+    await fetch(`${API_BASE}/api/admin/clients/${id}`, { method: 'PATCH', headers: authH(), body: JSON.stringify({ plan: 'active' }) });
+    loadClients(); loadStats();
+  }
+
+  function closeClientModal(e) {
+    if (e && e.target !== document.getElementById('clientModal')) return;
+    document.getElementById('clientModal').classList.remove('open');
+  }
+
+  function showErr(msg) { const el = document.getElementById('formErr'); el.textContent = msg; el.classList.add('show'); }
+
+  function relTime(dt) {
+    // SQLite stores UTC, so parse as UTC explicitly
+    const d = new Date(dt.endsWith('Z') ? dt : dt + 'Z');
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return Math.floor(diff/86400) + 'd ago';
+  }
+  function shortDate(dt) {
+    const d = new Date(dt.endsWith('Z') ? dt : dt + 'Z');
+    return d.toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
+  }
+  function logout() { localStorage.clear(); window.location.href = '/'; }
+
+  loadStats(); loadClients();
+  setInterval(() => { loadStats(); loadClients(); }, 30000);
+</script>
+</body>
+</html>
