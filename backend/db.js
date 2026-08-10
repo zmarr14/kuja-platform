@@ -45,6 +45,15 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_leads_date ON leads(created_at DESC);
 `);
 
+// Migration: add calendly_url to clients if this column doesn't exist yet.
+// Safe to run every startup — SQLite has no "ADD COLUMN IF NOT EXISTS", so we
+// check pragma table_info first rather than relying on a try/catch around the ALTER.
+const clientCols = db.prepare("PRAGMA table_info(clients)").all().map(c => c.name);
+if (!clientCols.includes('calendly_url')) {
+  db.exec('ALTER TABLE clients ADD COLUMN calendly_url TEXT');
+  console.log('✅ Migration: added calendly_url column to clients');
+}
+
 function seedAdmin() {
   // Seed admin account
   const existing = db.prepare('SELECT id FROM admin WHERE email = ?').get(process.env.ADMIN_EMAIL);
