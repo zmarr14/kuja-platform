@@ -377,6 +377,10 @@
         <label>Website</label>
         <input type="text" id="f_website" placeholder="https://trustedproperty.co">
       </div>
+      <div class="form-field">
+        <label>Calendly Booking Link (optional)</label>
+        <input type="text" id="f_calendly" placeholder="https://calendly.com/paco-trustedproperty/15min">
+      </div>
       <div id="apiKeySection" style="display:none">
         <div class="form-field">
           <label>Chatbot API Key — paste this into the client's chatbot HTML</label>
@@ -440,6 +444,7 @@
               </span>
             </div>
             <div class="client-meta">${c.name} · ${c.email}${c.website ? ` · <a href="${c.website}" target="_blank" style="color:var(--gold)">${c.website}</a>` : ''}</div>
+            ${c.calendly_url ? `<div class="client-meta">📅 <a href="${c.calendly_url}" target="_blank" style="color:var(--gold)">${c.calendly_url}</a></div>` : ''}
             <div class="client-stats">
               <div class="c-stat">Leads: <strong>${c.lead_count || 0}</strong></div>
               <div class="c-stat">Last lead: <strong>${c.last_lead_at ? relTime(c.last_lead_at) : 'never'}</strong></div>
@@ -520,7 +525,7 @@
     editMode = false;
     document.getElementById('modalTitle').textContent = 'Add New Client';
     document.getElementById('editId').value = '';
-    ['f_name','f_agency','f_email','f_password','f_website'].forEach(id => document.getElementById(id).value = '');
+    ['f_name','f_agency','f_email','f_password','f_website','f_calendly'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f_password').placeholder = 'Min 8 characters';
     document.getElementById('apiKeySection').style.display = 'none';
     document.getElementById('formErr').classList.remove('show');
@@ -538,6 +543,7 @@
     document.getElementById('f_password').value = '';
     document.getElementById('f_password').placeholder = 'Leave blank to keep current';
     document.getElementById('f_website').value = c.website || '';
+    document.getElementById('f_calendly').value = c.calendly_url || '';
     document.getElementById('apiKeySection').style.display = 'none';
     document.getElementById('formErr').classList.remove('show');
     document.getElementById('saveBtn').textContent = 'Save Changes';
@@ -561,6 +567,7 @@
       agency_name: document.getElementById('f_agency').value.trim(),
       email: document.getElementById('f_email').value.trim(),
       website: document.getElementById('f_website').value.trim(),
+      calendly_url: document.getElementById('f_calendly').value.trim(),
     };
     const pw = document.getElementById('f_password').value;
     if (pw) body.password = pw;
