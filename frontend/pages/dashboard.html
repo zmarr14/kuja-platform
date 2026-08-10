@@ -60,7 +60,7 @@
     .page-title{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:var(--text)}
     .page-title em{font-style:normal;color:var(--gold)}
     .page-sub{font-size:0.85rem;color:var(--text-mid);margin-top:0.3rem}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem}
     .stat{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.25rem;transition:box-shadow 0.2s,background 0.3s}
     .stat:hover{box-shadow:var(--shadow)}
     .stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);margin-bottom:0.4rem}
@@ -92,6 +92,9 @@
     .lead-meta{text-align:right;flex-shrink:0}
     .lead-time{font-size:0.72rem;color:var(--text-muted)}
     .unread-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);margin-left:5px;vertical-align:middle}
+    .score-badge{display:inline-flex;align-items:center;gap:3px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:middle}
+    .score-badge.hot{background:rgba(255,90,31,0.12);color:var(--gold)}
+    .score-badge.warm{background:var(--cream-mid);color:var(--text-mid)}
     .no-results{text-align:center;padding:3.5rem 2rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:16px}
     .no-results-icon{font-size:2.5rem;margin-bottom:0.75rem}
     .no-results-title{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--text)}
@@ -131,6 +134,7 @@
     .toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
     .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin:2.5rem auto}
     @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:1100px){.stats{grid-template-columns:repeat(3,1fr)}}
     @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.main{padding:1.25rem}.stats{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr);gap:0.6rem}.filter-tabs{flex-shrink:0}}
   </style>
@@ -184,6 +188,7 @@
         <div class="stat"><div class="stat-label">Unread</div><div class="stat-value gold" id="statUnread">—</div></div>
         <div class="stat"><div class="stat-label">Today</div><div class="stat-value" id="statToday">—</div></div>
         <div class="stat"><div class="stat-label">This Week</div><div class="stat-value" id="statWeek">—</div></div>
+        <div class="stat"><div class="stat-label">🔥 Hot Leads</div><div class="stat-value gold" id="statHot">—</div></div>
       </div>
       <div class="leads-toolbar">
         <div class="search-wrap">
@@ -192,6 +197,7 @@
         </div>
         <div class="filter-tabs">
           <div class="filter-tab active" onclick="setFilter('all',this)">All</div>
+          <div class="filter-tab" onclick="setFilter('hot',this)">🔥 Hot</div>
           <div class="filter-tab" onclick="setFilter('unread',this)">Unread</div>
           <div class="filter-tab" onclick="setFilter('today',this)">Today</div>
         </div>
@@ -315,6 +321,7 @@
       document.getElementById('statUnread').textContent=d.unread;
       document.getElementById('statToday').textContent=d.today;
       document.getElementById('statWeek').textContent=d.thisWeek;
+      document.getElementById('statHot').textContent=d.hot!==undefined?d.hot:'—';
       const badge=document.getElementById('sidebarBadge');
       const nu=document.getElementById('navUnread');
       if(d.unread>0){badge.textContent=d.unread;badge.style.display='';nu.textContent=d.unread+' new';nu.style.display='';}
@@ -337,6 +344,7 @@
   function applyFilters(){
     let leads=[...allLeads];
     if(currentFilter==='unread') leads=leads.filter(l=>!l.read_at);
+    if(currentFilter==='hot') leads=leads.filter(l=>l.score_label==='hot');
     if(currentFilter==='today'){
       const today=new Date();today.setHours(0,0,0,0);
       leads=leads.filter(l=>{const d=new Date(l.created_at.endsWith('Z')?l.created_at:l.created_at+'Z');return d>=today;});
@@ -356,7 +364,7 @@
   function renderLeads(leads){
     const list=document.getElementById('leadsList');
     if(!leads||!leads.length){
-      const msg=searchQuery?'No leads match your search.':currentFilter==='unread'?'All caught up — no unread leads.':currentFilter==='today'?'No leads today yet.':'No leads yet.';
+      const msg=searchQuery?'No leads match your search.':currentFilter==='unread'?'All caught up — no unread leads.':currentFilter==='hot'?'No hot leads right now.':currentFilter==='today'?'No leads today yet.':'No leads yet.';
       list.innerHTML='<div class="no-results"><div class="no-results-icon">◈</div><div class="no-results-title">'+msg+'</div><div class="no-results-sub">When your chatbot captures a lead, it will appear here instantly.</div></div>';
       return;
     }
@@ -364,10 +372,11 @@
       const initials=(lead.name||lead.email||'?').charAt(0).toUpperCase();
       const unread=!lead.read_at;
       const preview=getPreview(lead.transcript);
+      const badge=lead.score_label==='hot'?'<span class="score-badge hot">🔥 Hot</span>':lead.score_label==='warm'?'<span class="score-badge warm">Warm</span>':'';
       return '<div class="lead-card '+(unread?'unread':'')+'" onclick="openLead('+i+')">'
         +'<div class="lead-avatar">'+initials+'</div>'
         +'<div class="lead-body">'
-        +'<div class="lead-name">'+( lead.name||lead.email||'Unknown Lead')+(unread?'<span class="unread-dot"></span>':'')+'</div>'
+        +'<div class="lead-name">'+( lead.name||lead.email||'Unknown Lead')+(unread?'<span class="unread-dot"></span>':'')+badge+'</div>'
         +'<div class="lead-contacts">'+(lead.phone?'<span class="lead-contact">📞 '+lead.phone+'</span>':'')+(lead.email?'<span class="lead-contact">✉ '+lead.email+'</span>':'')+'</div>'
         +(preview?'<div class="lead-preview">"'+preview+'"</div>':'')
         +'</div>'
@@ -385,8 +394,10 @@
       loadStats();
     }
     document.getElementById('modalTitle').textContent=lead.name||lead.email||'Lead Details';
+    const scoreRow=lead.score_label==='hot'?'<div class="detail-row"><div class="detail-label">Score</div><div class="detail-value"><span class="score-badge hot">🔥 Hot lead</span></div></div>':lead.score_label==='warm'?'<div class="detail-row"><div class="detail-label">Score</div><div class="detail-value"><span class="score-badge warm">Warm lead</span></div></div>':'';
     document.getElementById('modalBody').innerHTML=
-      (lead.name?'<div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">'+lead.name+'</div></div>':'')
+      scoreRow
+      +(lead.name?'<div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">'+lead.name+'</div></div>':'')
       +(lead.phone?'<div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value"><a href="tel:'+lead.phone+'">'+lead.phone+'</a></div></div>':'')
       +(lead.email?'<div class="detail-row"><div class="detail-label">Email</div><div class="detail-value"><a href="mailto:'+lead.email+'">'+lead.email+'</a></div></div>':'')
       +'<div class="detail-row"><div class="detail-label">Captured</div><div class="detail-value">'+fullTime(lead.created_at)+'</div></div>'
