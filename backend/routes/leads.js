@@ -5,6 +5,29 @@ const { db } = require('../db');
 const { clientAuth, adminAuth } = require('../middleware/auth');
 const { sendLeadNotification } = require('../email');
 
+// ── Lead scoring ──
+// Computed on read (not stored) so this never touches existing data or requires a migration.
+// score: 0-5 · label: 'hot' (4-5) | 'warm' (2-3) | 'cold' (0-1)
+function scoreLead(lead) {
+  let score = 0;
+  if (lead.name) score++;
+  if (lead.phone) score++;
+  if (lead.email) score++;
+
+  const t = (lead.transcript || '').toLowerCase();
+  // budget / price signal
+  if (/\$\s?\d|\b\d+\s?(k|m)\b|budget|price range|per week|per month/.test(t)) score++;
+  // urgency / timeline signal
+  if (/asap|urgent|this week|this weekend|today|tomorrow|soon|right away|ready to (buy|sell|move|rent)|need to (buy|sell|move)/.test(t)) score++;
+
+  const label = score >= 4 ? 'hot' : score >= 2 ? 'warm' : 'cold';
+  return { score, score_label: label };
+}
+
+function withScore(lead) {
+  return { ...lead, ...scoreLead(lead) };
+}
+
 // Chatbot posts lead here (replaces Formspree)
 router.post('/webhook', async (req, res) => {
   const { api_key, name, phone, email, transcript, source_page } = req.body;
@@ -33,16 +56,19 @@ router.get('/', clientAuth, (req, res) => {
   if (unread === 'true') { where += ' AND read_at IS NULL'; }
   const total = db.prepare(`SELECT COUNT(*) as c FROM leads ${where}`).get(...params).c;
   const leads = db.prepare(`SELECT * FROM leads ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...params, parseInt(limit), offset);
-  res.json({ leads, total });
+  res.json({ leads: leads.map(withScore), total });
 });
 
 router.get('/stats', clientAuth, (req, res) => {
   const id = req.clientId;
+  const hotCount = db.prepare('SELECT * FROM leads WHERE client_id = ?').all(id)
+    .filter(l => scoreLead(l).score_label === 'hot').length;
   res.json({
     total:    db.prepare('SELECT COUNT(*) as c FROM leads WHERE client_id = ?').get(id).c,
     unread:   db.prepare('SELECT COUNT(*) as c FROM leads WHERE client_id = ? AND read_at IS NULL').get(id).c,
     today:    db.prepare("SELECT COUNT(*) as c FROM leads WHERE client_id = ? AND date(created_at) = date('now')").get(id).c,
     thisWeek: db.prepare("SELECT COUNT(*) as c FROM leads WHERE client_id = ? AND created_at >= datetime('now','-7 days')").get(id).c,
+    hot:      hotCount,
   });
 });
 
@@ -60,7 +86,7 @@ router.get('/admin/all', adminAuth, (req, res) => {
     FROM leads l JOIN clients c ON l.client_id = c.id
     ORDER BY l.created_at DESC LIMIT 200
   `).all();
-  res.json({ leads, total: leads.length });
+  res.json({ leads: leads.map(withScore), total: leads.length });
 });
 
 module.exports = router;
