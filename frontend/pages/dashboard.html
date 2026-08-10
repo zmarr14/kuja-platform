@@ -78,6 +78,21 @@
     [data-theme="dark"] .filter-tab.active{background:var(--gold);color:#fff}
     .filter-tab:not(.active):hover{background:var(--cream-mid)}
     .leads-count{font-size:0.78rem;color:var(--text-muted);margin-left:auto;white-space:nowrap}
+    .btn-primary-sm{background:var(--ink);color:var(--cream);border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s}
+    .btn-primary-sm:hover{background:var(--gold)}
+    [data-theme="dark"] .btn-primary-sm{background:var(--gold);color:#fff}
+    .listing-card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:box-shadow 0.2s,background 0.3s}
+    .listing-card:hover{box-shadow:var(--shadow)}
+    .listing-thumb{width:64px;height:64px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--cream-mid)}
+    .listing-body{flex:1;min-width:0}
+    .listing-address{font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:0.2rem}
+    .listing-meta{font-size:0.78rem;color:var(--text-mid)}
+    .listing-desc{font-size:0.78rem;color:var(--text-muted);margin-top:0.3rem}
+    .listing-actions{display:flex;gap:0.5rem;flex-shrink:0}
+    .listing-actions button{background:var(--surface);border:1px solid var(--border-subtle);border-radius:7px;padding:0.4rem 0.75rem;font-size:0.75rem;font-weight:500;color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s}
+    .listing-actions button:hover{background:var(--cream-mid);color:var(--text)}
+    .listing-actions button.danger{color:#c0392b;border-color:rgba(192,57,43,0.2)}
+    .listing-actions button.danger:hover{background:rgba(192,57,43,0.06)}
     .leads-list{display:flex;flex-direction:column;gap:0.6rem}
     .lead-card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;cursor:pointer;transition:box-shadow 0.2s,transform 0.2s,border-color 0.2s,background 0.3s;position:relative}
     .lead-card:hover{box-shadow:var(--shadow);transform:translateY(-1px);border-color:var(--border)}
@@ -108,6 +123,21 @@
     .modal-close{width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-mid);font-size:13px;transition:all 0.15s;flex-shrink:0}
     .modal-close:hover{background:var(--cream-mid);color:var(--text)}
     .modal-body{padding:1.25rem 1.5rem 1.5rem}
+    .lf-field{margin-bottom:1rem}
+    .lf-field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-mid);margin-bottom:0.4rem}
+    .lf-field input,.lf-field textarea{width:100%;background:var(--surface);border:1px solid var(--border-subtle);border-radius:9px;padding:0.7rem 0.9rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s}
+    .lf-field input:focus,.lf-field textarea:focus{border-color:var(--gold)}
+    .lf-field textarea{resize:vertical;min-height:70px}
+    .lf-row{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem}
+    .lf-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.9rem}
+    .lf-error{font-size:0.78rem;color:#c0392b;margin-top:0.5rem;display:none}
+    .lf-error.show{display:block}
+    .lf-actions{display:flex;gap:0.75rem;margin-top:1.25rem}
+    .lf-actions button{flex:1;padding:0.75rem;border-radius:9px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+    .lf-save{background:var(--ink);color:var(--cream)}
+    .lf-save:hover{background:var(--gold);color:#fff}
+    .lf-cancel{background:transparent;color:var(--text-mid);border:1px solid var(--border-subtle) !important}
+    .lf-cancel:hover{background:var(--cream-mid)}
     .detail-row{display:flex;gap:0.75rem;margin-bottom:0.85rem;align-items:baseline}
     .detail-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);width:65px;flex-shrink:0;padding-top:2px}
     .detail-value{font-size:0.88rem;color:var(--text)}
@@ -167,6 +197,7 @@
   <aside class="sidebar">
     <div class="sidebar-section">Menu</div>
     <div class="nav-item active" onclick="showView('leads',this)"><span class="icon">◈</span> My Leads <span class="nav-badge" id="sidebarBadge">0</span></div>
+    <div class="nav-item" onclick="showView('listings',this)"><span class="icon">⌂</span> My Listings</div>
     <div class="nav-item" onclick="showView('settings',this)"><span class="icon">⚙</span> Settings</div>
     <a class="nav-item" href="mailto:info@kujaai.com?subject=Support Request"><span class="icon">↗</span> Support</a>
     <div class="sidebar-footer">
@@ -204,6 +235,20 @@
         <div class="leads-count" id="leadsCount"></div>
       </div>
       <div class="leads-list" id="leadsList"><div class="spinner"></div></div>
+    </div>
+
+    <!-- LISTINGS VIEW -->
+    <div id="viewListings" style="display:none">
+      <div class="page-header">
+        <div class="page-label">Properties</div>
+        <div class="page-title">Your <em>Listings</em></div>
+        <div class="page-sub">Keep this up to date — your AI assistant recommends from these when a lead describes what they need</div>
+      </div>
+      <div class="leads-toolbar">
+        <div class="leads-count" id="listingsCount"></div>
+        <button class="btn-primary-sm" onclick="openAddListing()">+ Add Listing</button>
+      </div>
+      <div class="leads-list" id="listingsList"><div class="spinner"></div></div>
     </div>
 
     <!-- SETTINGS VIEW -->
@@ -270,6 +315,64 @@
   </div>
 </div>
 
+<!-- Listing Modal -->
+<div class="modal-overlay" id="listingModalOverlay" onclick="closeListingModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="listingModalTitle">Add Listing</div>
+      <div class="modal-close" onclick="closeListingModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="l_id">
+      <div class="lf-field">
+        <label>Address</label>
+        <input type="text" id="l_address" placeholder="12 Example St, Carindale">
+      </div>
+      <div class="lf-row">
+        <div class="lf-field">
+          <label>Suburb</label>
+          <input type="text" id="l_suburb" placeholder="Carindale">
+        </div>
+        <div class="lf-field">
+          <label>Price</label>
+          <input type="text" id="l_price" placeholder="$650,000 or POA">
+        </div>
+      </div>
+      <div class="lf-row3">
+        <div class="lf-field">
+          <label>Bedrooms</label>
+          <input type="number" id="l_bedrooms" placeholder="3">
+        </div>
+        <div class="lf-field">
+          <label>Bathrooms</label>
+          <input type="number" id="l_bathrooms" placeholder="2">
+        </div>
+        <div class="lf-field">
+          <label>Type</label>
+          <input type="text" id="l_type" placeholder="House, Unit...">
+        </div>
+      </div>
+      <div class="lf-field">
+        <label>Photo URL</label>
+        <input type="text" id="l_image" placeholder="https://... (link to a photo of the property)">
+      </div>
+      <div class="lf-field">
+        <label>Description</label>
+        <textarea id="l_description" placeholder="Short highlights — renovated kitchen, pool, close to schools..."></textarea>
+      </div>
+      <div class="lf-field">
+        <label>Listing URL (optional)</label>
+        <input type="text" id="l_url" placeholder="https://...">
+      </div>
+      <div class="lf-error" id="listingErr"></div>
+      <div class="lf-actions">
+        <button class="lf-save" id="listingSaveBtn" onclick="saveListing()">Save Listing</button>
+        <button class="lf-cancel" onclick="closeListingModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   const API_BASE = window.location.origin;
   let allLeads=[], filteredLeads=[], currentFilter='all', searchQuery='', autoRefreshInterval=null;
@@ -307,9 +410,11 @@
 
   function showView(view,el){
     document.getElementById('viewLeads').style.display=view==='leads'?'':'none';
+    document.getElementById('viewListings').style.display=view==='listings'?'':'none';
     document.getElementById('viewSettings').style.display=view==='settings'?'':'none';
     document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
     if(el)el.classList.add('active');
+    if(view==='listings')loadListings();
   }
 
   async function loadStats(){
@@ -446,6 +551,123 @@
   function toggleAutoRefresh(){
     if(document.getElementById('autoRefreshToggle').checked)startAutoRefresh();
     else clearInterval(autoRefreshInterval);
+  }
+
+  // ── Listings ──
+  let allListings=[];
+  let listingEditMode=false;
+
+  async function loadListings(){
+    const list=document.getElementById('listingsList');
+    list.innerHTML='<div class="spinner"></div>';
+    try{
+      const res=await fetch(API_BASE+'/api/listings',{headers:authH()});
+      if(res.status===401){logout();return;}
+      const data=await res.json();
+      allListings=data.listings||[];
+      document.getElementById('listingsCount').textContent=allListings.length+' listing'+(allListings.length!==1?'s':'');
+      renderListings();
+    }catch(e){
+      list.innerHTML='<div class="no-results"><div class="no-results-icon">⚠</div><div class="no-results-title">Connection error</div><div class="no-results-sub">Could not load listings. Please refresh.</div></div>';
+    }
+  }
+
+  function renderListings(){
+    const list=document.getElementById('listingsList');
+    if(!allListings.length){
+      list.innerHTML='<div class="no-results"><div class="no-results-icon">⌂</div><div class="no-results-title">No listings yet.</div><div class="no-results-sub">Add your active properties so your AI assistant can recommend them to leads.</div></div>';
+      return;
+    }
+    list.innerHTML=allListings.map((l,i)=>{
+      const meta=[l.suburb,l.price,l.bedrooms?l.bedrooms+' bed':null,l.bathrooms?l.bathrooms+' bath':null,l.property_type].filter(Boolean).join(' · ');
+      const thumb=l.image_url?'<img class="listing-thumb" src="'+l.image_url+'" alt="" onerror="this.style.display=\'none\'">':'';
+      return '<div class="listing-card">'
+        +thumb
+        +'<div class="listing-body">'
+        +'<div class="listing-address">'+l.address+'</div>'
+        +(meta?'<div class="listing-meta">'+meta+'</div>':'')
+        +(l.description?'<div class="listing-desc">'+l.description+'</div>':'')
+        +'</div>'
+        +'<div class="listing-actions">'
+        +'<button onclick="editListing('+i+')">Edit</button>'
+        +'<button class="danger" onclick="deleteListing('+i+')">Delete</button>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  function openAddListing(){
+    listingEditMode=false;
+    document.getElementById('listingModalTitle').textContent='Add Listing';
+    document.getElementById('l_id').value='';
+    ['l_address','l_suburb','l_price','l_bedrooms','l_bathrooms','l_type','l_description','l_url','l_image'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('listingErr').classList.remove('show');
+    document.getElementById('listingSaveBtn').textContent='Save Listing';
+    document.getElementById('listingModalOverlay').classList.add('open');
+  }
+
+  function editListing(index){
+    const l=allListings[index];
+    if(!l)return;
+    listingEditMode=true;
+    document.getElementById('listingModalTitle').textContent='Edit Listing';
+    document.getElementById('l_id').value=l.id;
+    document.getElementById('l_address').value=l.address||'';
+    document.getElementById('l_suburb').value=l.suburb||'';
+    document.getElementById('l_price').value=l.price||'';
+    document.getElementById('l_bedrooms').value=l.bedrooms||'';
+    document.getElementById('l_bathrooms').value=l.bathrooms||'';
+    document.getElementById('l_type').value=l.property_type||'';
+    document.getElementById('l_description').value=l.description||'';
+    document.getElementById('l_url').value=l.url||'';
+    document.getElementById('l_image').value=l.image_url||'';
+    document.getElementById('listingErr').classList.remove('show');
+    document.getElementById('listingSaveBtn').textContent='Save Changes';
+    document.getElementById('listingModalOverlay').classList.add('open');
+  }
+
+  async function saveListing(){
+    const btn=document.getElementById('listingSaveBtn');
+    const err=document.getElementById('listingErr');
+    err.classList.remove('show');
+    const address=document.getElementById('l_address').value.trim();
+    if(!address){err.textContent='Address is required.';err.classList.add('show');return;}
+    const body={
+      address,
+      suburb:document.getElementById('l_suburb').value.trim(),
+      price:document.getElementById('l_price').value.trim(),
+      bedrooms:document.getElementById('l_bedrooms').value?parseInt(document.getElementById('l_bedrooms').value):null,
+      bathrooms:document.getElementById('l_bathrooms').value?parseInt(document.getElementById('l_bathrooms').value):null,
+      property_type:document.getElementById('l_type').value.trim(),
+      description:document.getElementById('l_description').value.trim(),
+      url:document.getElementById('l_url').value.trim(),
+      image_url:document.getElementById('l_image').value.trim(),
+    };
+    btn.disabled=true;btn.textContent='Saving…';
+    try{
+      const id=document.getElementById('l_id').value;
+      const url=listingEditMode?API_BASE+'/api/listings/'+id:API_BASE+'/api/listings';
+      const method=listingEditMode?'PATCH':'POST';
+      const res=await fetch(url,{method,headers:authH(),body:JSON.stringify(body)});
+      const data=await res.json();
+      if(!res.ok){err.textContent=data.error||'Failed to save.';err.classList.add('show');return;}
+      closeListingModal();
+      loadListings();
+    }catch(e){err.textContent='Connection error.';err.classList.add('show');}
+    finally{btn.disabled=false;btn.textContent=listingEditMode?'Save Changes':'Save Listing';}
+  }
+
+  async function deleteListing(index){
+    const l=allListings[index];
+    if(!l)return;
+    if(!confirm('Delete this listing? This can\'t be undone.'))return;
+    await fetch(API_BASE+'/api/listings/'+l.id,{method:'DELETE',headers:authH()}).catch(()=>{});
+    loadListings();
+  }
+
+  function closeListingModal(e){
+    if(e&&e.target!==document.getElementById('listingModalOverlay'))return;
+    document.getElementById('listingModalOverlay').classList.remove('open');
   }
 
   loadStats();loadLeads();startAutoRefresh();
