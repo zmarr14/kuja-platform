@@ -156,12 +156,15 @@
     }
     .status-active { background: rgba(255,90,31,0.1); color: var(--gold); border: 1px solid var(--border); }
     .status-inactive { background: rgba(192,57,43,0.08); color: #c0392b; border: 1px solid rgba(192,57,43,0.2); }
+    .score-badge{display:inline-flex;align-items:center;gap:3px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;padding:2px 7px;border-radius:6px}
+    .score-badge.hot{background:rgba(255,90,31,0.12);color:var(--gold)}
+    .score-badge.warm{background:var(--cream-mid);color:var(--mid)}
     .client-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 
     /* ── LEADS TABLE ── */
     .leads-table { background: var(--white); border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; }
     .table-head {
-      display: grid; grid-template-columns: 1.5fr 1fr 100px 120px 100px;
+      display: grid; grid-template-columns: 90px 1.5fr 1fr 100px 120px 100px;
       padding: 0.8rem 1.5rem;
       background: var(--cream-mid);
       font-family: 'IBM Plex Mono', monospace;
@@ -169,7 +172,7 @@
       border-bottom: 1px solid var(--border-subtle);
     }
     .table-row {
-      display: grid; grid-template-columns: 1.5fr 1fr 100px 120px 100px;
+      display: grid; grid-template-columns: 90px 1.5fr 1fr 100px 120px 100px;
       padding: 1rem 1.5rem; font-size: 0.85rem;
       border-bottom: 1px solid var(--border-subtle);
       transition: background 0.1s; cursor: default;
@@ -322,7 +325,7 @@
       </div>
       <div class="leads-table">
         <div class="table-head">
-          <div>Contact</div><div>Agency</div><div>Phone</div><div>Email</div><div>Time</div>
+          <div>Score</div><div>Contact</div><div>Agency</div><div>Phone</div><div>Email</div><div>Time</div>
         </div>
         <div id="leadsBody"><div class="spinner"></div></div>
       </div>
@@ -470,6 +473,7 @@
       }
       body.innerHTML = allAdminLeads.map((l, i) => `
         <div class="table-row" onclick="openLeadDetail(${i})" style="cursor:pointer" title="Click to view full details">
+          <div>${l.score_label === 'hot' ? '<span class="score-badge hot">🔥 Hot</span>' : l.score_label === 'warm' ? '<span class="score-badge warm">Warm</span>' : ''}</div>
           <div style="font-weight:500">${l.name || l.email || '—'}</div>
           <div style="color:var(--mid)">${l.agency_name}</div>
           <div>${l.phone || '—'}</div>
