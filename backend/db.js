@@ -41,17 +41,39 @@ db.exec(`
     email    TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS listings (
+    id            TEXT PRIMARY KEY,
+    client_id     TEXT NOT NULL,
+    address       TEXT NOT NULL,
+    suburb        TEXT,
+    price         TEXT,
+    bedrooms      INTEGER,
+    bathrooms     INTEGER,
+    property_type TEXT,
+    description   TEXT,
+    url           TEXT,
+    status        TEXT DEFAULT 'active',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (client_id) REFERENCES clients(id)
+  );
   CREATE INDEX IF NOT EXISTS idx_leads_client ON leads(client_id);
   CREATE INDEX IF NOT EXISTS idx_leads_date ON leads(created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_listings_client ON listings(client_id);
 `);
 
-// Migration: add calendly_url to clients if this column doesn't exist yet.
-// Safe to run every startup — SQLite has no "ADD COLUMN IF NOT EXISTS", so we
-// check pragma table_info first rather than relying on a try/catch around the ALTER.
+// Migrations: SQLite has no "ADD COLUMN IF NOT EXISTS", so we check
+// pragma table_info first and only alter if the column is actually missing.
+// Safe to run on every startup — never touches existing rows.
 const clientCols = db.prepare("PRAGMA table_info(clients)").all().map(c => c.name);
 if (!clientCols.includes('calendly_url')) {
   db.exec('ALTER TABLE clients ADD COLUMN calendly_url TEXT');
   console.log('✅ Migration: added calendly_url column to clients');
+}
+
+const listingCols = db.prepare("PRAGMA table_info(listings)").all().map(c => c.name);
+if (!listingCols.includes('image_url')) {
+  db.exec('ALTER TABLE listings ADD COLUMN image_url TEXT');
+  console.log('✅ Migration: added image_url column to listings');
 }
 
 function seedAdmin() {
