@@ -3,43 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kuja AI — Admin</title>
+  <title>Kuja — Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:opsz,wght@14..32,400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0d0d0d;
-      --cream: #f5f0e8;
-      --cream-mid: #f0ebe0;
-      --gold: #c9a84c;
-      --gold-light: #e8d5a3;
+      --ink: #131218;
+      --cream: #F3EFE6;
+      --cream-mid: #ECE6D8;
+      --gold: #FF5A1F;
+      --gold-light: #FFD2BE;
       --white: #ffffff;
       --mid: #6b6560;
-      --border: rgba(201,168,76,0.25);
-      --border-subtle: rgba(0,0,0,0.07);
+      --border: rgba(255,90,31,0.25);
+      --border-subtle: rgba(19,18,24,0.08);
     }
 
     html { scroll-behavior: smooth; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--ink); }
 
     /* ── NAV ── */
     nav {
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 1rem 2.5rem;
-      background: rgba(13,13,13,0.97);
+      background: rgba(19,18,24,0.97);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(201,168,76,0.2);
+      border-bottom: 1px solid rgba(255,90,31,0.2);
     }
-    .logo { display: inline-flex; align-items: center; text-decoration: none; }
-    .logo svg { height: 40px; width: auto; display: block; }
+    .logo { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 36px; height: 36px; border-radius: 9px; background: var(--gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-mark svg { width: 19px; height: 19px; }
+    .logo-text { display: flex; flex-direction: column; line-height: 1; }
+    .logo-word { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--cream); letter-spacing: -0.01em; }
+    .logo-tag { font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; color: rgba(245,240,232,0.4); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px; }
     .admin-badge {
-      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.12em;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--gold);
-      border: 1px solid rgba(201,168,76,0.35); padding: 0.2rem 0.6rem; border-radius: 2px;
+      border: 1px solid rgba(255,90,31,0.35); padding: 0.25rem 0.65rem; border-radius: 7px;
       margin-left: 1rem;
     }
     .nav-right { display: flex; align-items: center; gap: 1.5rem; }
@@ -57,20 +62,21 @@
       position: sticky; top: 66px; height: calc(100vh - 66px); overflow-y: auto;
     }
     .sidebar-section {
-      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.12em;
-      text-transform: uppercase; color: rgba(201,168,76,0.6);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(255,90,31,0.7);
       margin-bottom: 0.75rem; margin-top: 1.5rem;
     }
     .sidebar-section:first-child { margin-top: 0; }
     .nav-item {
       display: flex; align-items: center; gap: 0.7rem;
-      padding: 0.6rem 0.75rem; border-radius: 2px;
+      padding: 0.6rem 0.75rem; border-radius: 8px;
       font-size: 0.875rem; font-weight: 500; color: rgba(245,240,232,0.5);
       cursor: pointer; transition: all 0.15s; text-decoration: none;
       margin-bottom: 2px;
     }
     .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--cream); }
-    .nav-item.active { background: var(--gold); color: var(--ink); }
+    .nav-item.active { background: var(--gold); color: #fff; }
     .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
 
     /* ── MAIN ── */
@@ -78,85 +84,88 @@
 
     .page-header { margin-bottom: 2.5rem; }
     .page-label {
-      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.14em;
       text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
     }
     .page-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1.1;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
     }
-    .page-title em { font-style: italic; color: var(--gold); }
+    .page-title em { font-style: normal; color: var(--gold); }
     .page-sub { font-size: 0.9rem; color: var(--mid); margin-top: 0.4rem; }
 
     /* ── STATS ── */
     .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
     .stat {
-      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px;
+      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 14px;
       padding: 1.5rem; transition: box-shadow 0.2s;
     }
-    .stat:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-    .stat-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.5rem; }
-    .stat-value { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; line-height: 1; color: var(--ink); }
+    .stat:hover { box-shadow: 0 8px 24px rgba(19,18,24,0.07); }
+    .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.5rem; }
+    .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; font-weight: 700; line-height: 1; color: var(--ink); }
     .stat-value.gold { color: var(--gold); }
 
     /* ── SECTION ── */
     .section { margin-bottom: 3rem; }
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
-    .section-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; }
+    .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; }
 
     /* ── BUTTONS ── */
     .btn {
-      padding: 0.7rem 1.4rem; border-radius: 2px; font-size: 0.85rem; font-weight: 500;
-      cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
-      letter-spacing: 0.03em; transition: all 0.2s;
+      padding: 0.7rem 1.4rem; border-radius: 9px; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; border: none; font-family: 'Inter', sans-serif;
+      letter-spacing: 0.01em; transition: all 0.2s;
     }
     .btn-primary { background: var(--ink); color: var(--cream); }
-    .btn-primary:hover { background: var(--gold); color: var(--ink); }
+    .btn-primary:hover { background: var(--gold); color: #fff; }
     .btn-ghost { background: transparent; color: var(--mid); border: 1px solid var(--border-subtle); }
     .btn-ghost:hover { background: var(--cream); color: var(--ink); }
     .btn-danger { background: transparent; color: #c0392b; border: 1px solid rgba(192,57,43,0.2); }
     .btn-danger:hover { background: rgba(192,57,43,0.06); }
-    .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.78rem; }
-    .btn-gold { background: var(--gold); color: var(--ink); }
+    .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.78rem; border-radius: 7px; }
+    .btn-gold { background: var(--gold); color: #fff; }
     .btn-gold:hover { opacity: 0.85; }
 
     /* ── CLIENT CARDS ── */
     .clients-list { display: flex; flex-direction: column; gap: 0.75rem; }
     .client-card {
-      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px;
+      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 14px;
       padding: 1.25rem 1.5rem;
       display: flex; align-items: center; gap: 1.25rem;
       transition: box-shadow 0.2s, border-color 0.2s;
     }
-    .client-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); border-color: var(--border); }
+    .client-card:hover { box-shadow: 0 8px 24px rgba(19,18,24,0.08); border-color: var(--border); }
     .client-avatar {
-      width: 44px; height: 44px; border-radius: 2px; flex-shrink: 0;
+      width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0;
       background: var(--ink);
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.2rem; color: var(--gold);
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--gold);
     }
     .client-info { flex: 1; min-width: 0; }
-    .client-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.75rem; }
+    .client-name { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.75rem; }
     .client-meta { font-size: 0.8rem; color: var(--mid); margin-bottom: 0.25rem; }
     .client-stats { display: flex; gap: 1.5rem; }
     .c-stat { font-size: 0.78rem; color: var(--mid); }
-    .c-stat strong { color: var(--ink); font-weight: 500; }
+    .c-stat strong { color: var(--ink); font-weight: 600; }
     .status-pill {
       display: inline-flex; align-items: center; gap: 0.3rem;
-      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 0.2rem 0.6rem; border-radius: 2px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.2rem 0.6rem; border-radius: 6px;
     }
-    .status-active { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid var(--border); }
+    .status-active { background: rgba(255,90,31,0.1); color: var(--gold); border: 1px solid var(--border); }
     .status-inactive { background: rgba(192,57,43,0.08); color: #c0392b; border: 1px solid rgba(192,57,43,0.2); }
     .client-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 
     /* ── LEADS TABLE ── */
-    .leads-table { background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px; overflow: hidden; }
+    .leads-table { background: var(--white); border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; }
     .table-head {
       display: grid; grid-template-columns: 1.5fr 1fr 100px 120px 100px;
       padding: 0.8rem 1.5rem;
       background: var(--cream-mid);
-      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid);
       border-bottom: 1px solid var(--border-subtle);
     }
     .table-row {
@@ -172,16 +181,16 @@
     /* ── MODAL ── */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 200;
-      background: rgba(13,13,13,0.65); backdrop-filter: blur(4px);
+      background: rgba(19,18,24,0.65); backdrop-filter: blur(4px);
       display: flex; align-items: center; justify-content: center; padding: 2rem;
       opacity: 0; pointer-events: none; transition: opacity 0.2s;
     }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     .modal {
-      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 2px;
+      background: var(--white); border: 1px solid var(--border-subtle); border-radius: 18px;
       width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
       transform: translateY(12px); transition: transform 0.2s;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.2);
+      box-shadow: 0 32px 80px rgba(19,18,24,0.2);
     }
     .modal-overlay.open .modal { transform: translateY(0); }
     .modal-header {
@@ -189,22 +198,22 @@
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; background: var(--white); z-index: 1;
     }
-    .modal-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 900; }
+    .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; font-weight: 700; }
     .modal-close {
       width: 30px; height: 30px; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      border: 1px solid var(--border-subtle); border-radius: 2px;
+      border: 1px solid var(--border-subtle); border-radius: 8px;
       color: var(--mid); font-size: 14px; transition: all 0.15s;
     }
     .modal-close:hover { background: var(--cream-mid); color: var(--ink); }
     .modal-body { padding: 1.5rem 2rem 2rem; }
 
     .form-field { margin-bottom: 1.1rem; }
-    .form-field label { display: block; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.4rem; }
+    .form-field label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.4rem; }
     .form-field input {
-      width: 100%; background: var(--white); border: 1px solid rgba(201,168,76,0.3);
-      border-radius: 2px; padding: 0.75rem 1rem;
-      color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      width: 100%; background: var(--white); border: 1px solid rgba(255,90,31,0.3);
+      border-radius: 9px; padding: 0.75rem 1rem;
+      color: var(--ink); font-family: 'Inter', sans-serif; font-size: 0.9rem;
       outline: none; transition: border-color 0.2s;
     }
     .form-field input:focus { border-color: var(--gold); }
@@ -212,8 +221,8 @@
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
     .api-key-box {
-      background: var(--cream); border: 1px solid var(--border); border-radius: 2px;
-      padding: 0.75rem 1rem; font-family: monospace; font-size: 0.78rem; color: var(--gold);
+      background: var(--cream); border: 1px solid var(--border); border-radius: 9px;
+      padding: 0.75rem 1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--gold);
       word-break: break-all; line-height: 1.5;
     }
     .field-error { font-size: 0.78rem; color: #c0392b; margin-top: 0.75rem; display: none; }
@@ -222,7 +231,7 @@
 
     /* Spinner */
     .detail-row { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: baseline; }
-    .detail-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); width: 70px; flex-shrink: 0; }
+    .detail-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); width: 70px; flex-shrink: 0; }
     .detail-value { font-size: 0.9rem; color: var(--ink); }
     .spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 3rem auto; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -236,21 +245,17 @@
 <nav>
   <div style="display:flex;align-items:center">
     <a class="logo" href="https://kujaai.com">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 370 100" height="40">
-        <g transform="translate(6,2) scale(0.83)">
-          <ellipse cx="62" cy="66" rx="54" ry="52" fill="rgba(255,255,255,0.12)"/><ellipse cx="24" cy="72" rx="18" ry="20" fill="rgba(255,255,255,0.12)"/><ellipse cx="100" cy="72" rx="18" ry="20" fill="rgba(255,255,255,0.12)"/><ellipse cx="38" cy="26" rx="18" ry="16" fill="rgba(255,255,255,0.12)"/><ellipse cx="86" cy="26" rx="18" ry="16" fill="rgba(255,255,255,0.12)"/><ellipse cx="62" cy="20" rx="22" ry="16" fill="rgba(255,255,255,0.12)"/><ellipse cx="62" cy="68" rx="38" ry="36" fill="rgba(255,255,255,0.07)"/>
-          <ellipse cx="34" cy="35" rx="13" ry="15" fill="rgba(255,255,255,0.1)" transform="rotate(-15 34 35)"/><ellipse cx="90" cy="35" rx="13" ry="15" fill="rgba(255,255,255,0.1)" transform="rotate(15 90 35)"/>
-          <ellipse cx="48" cy="62" rx="9" ry="9" fill="rgba(255,255,255,0.8)"/><ellipse cx="48" cy="62" rx="4.5" ry="4.5" fill="#0d0d0d"/><ellipse cx="50" cy="60" rx="2" ry="2" fill="white"/>
-          <ellipse cx="76" cy="62" rx="9" ry="9" fill="rgba(255,255,255,0.8)"/><ellipse cx="76" cy="62" rx="4.5" ry="4.5" fill="#0d0d0d"/><ellipse cx="78" cy="60" rx="2" ry="2" fill="white"/>
-          <ellipse cx="62" cy="77" rx="10" ry="7" fill="#0d0d0d"/>
-          <path d="M52 82 Q62 90 72 82" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <circle cx="62" cy="45" r="4" fill="#c9a84c"/><circle cx="62" cy="45" r="2" fill="#0d0d0d"/>
-          <line x1="62" y1="41" x2="62" y2="37" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><line x1="65.5" y1="42.5" x2="68" y2="39" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><line x1="58.5" y1="42.5" x2="56" y2="39" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
-        </g>
-        <text x="110" y="58" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="700" fill="#f5f0e8" letter-spacing="-1">KUJA</text>
-        <text x="222" y="58" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="700" fill="#c9a84c" letter-spacing="-1"> AI</text>
-        <text x="112" y="75" font-family="'Helvetica Neue',Arial,sans-serif" font-size="9.5" fill="rgba(245,240,232,0.35)" letter-spacing="3">INTELLIGENCE FOR BUSINESS</text>
-      </svg>
+      <div class="logo-mark">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 10L14 30" stroke="#131218" stroke-width="4" stroke-linecap="round"/>
+          <path d="M14 20L23 10" stroke="#F3EFE6" stroke-width="4" stroke-linecap="round"/>
+          <path d="M17 20L23 30" stroke="#131218" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-word">Kuja</span>
+        <span class="logo-tag">Intelligence for Business</span>
+      </div>
     </a>
     <span class="admin-badge">Admin</span>
   </div>
@@ -273,7 +278,7 @@
   <main class="main">
     <div class="page-header">
       <div class="page-label">Admin Panel</div>
-      <div class="page-title">Kuja AI <em>Dashboard</em></div>
+      <div class="page-title">Kuja <em>Dashboard</em></div>
       <div class="page-sub">Manage all clients and view leads across the platform</div>
     </div>
 
@@ -479,7 +484,7 @@
     if (!l) return;
     const transcriptHtml = l.transcript
       ? l.transcript.split('\n').filter(line => line.trim()).map(line => {
-          if (line.startsWith('Visitor:')) return `<p style="margin:0 0 8px;font-weight:500;color:#0d0d0d">${line}</p>`;
+          if (line.startsWith('Visitor:')) return `<p style="margin:0 0 8px;font-weight:500;color:#131218">${line}</p>`;
           if (line.startsWith('Bot:')) return `<p style="margin:0 0 8px;color:#6b6560">${line}</p>`;
           return `<p style="margin:0 0 4px;color:#aaa;font-size:0.75rem">${line}</p>`;
         }).join('')
@@ -494,8 +499,8 @@
       <div class="detail-row"><div class="detail-label">Captured</div><div class="detail-value">${new Date(l.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Brisbane', dateStyle: 'medium', timeStyle: 'short' })}</div></div>
       ${l.source_page ? `<div class="detail-row"><div class="detail-label">Source</div><div class="detail-value" style="font-size:0.8rem;word-break:break-all">${l.source_page}</div></div>` : ''}
       <div style="margin-top:1.25rem">
-        <div style="font-size:0.72rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:0.75rem">Conversation Transcript</div>
-        <div style="background:var(--cream);border:1px solid var(--border);border-radius:2px;padding:1.25rem;max-height:280px;overflow-y:auto;font-size:0.83rem;line-height:1.55">${transcriptHtml}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:0.75rem">Conversation Transcript</div>
+        <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:1.25rem;max-height:280px;overflow-y:auto;font-size:0.83rem;line-height:1.55">${transcriptHtml}</div>
       </div>`;
     document.getElementById('leadDetailModal').classList.add('open');
   }
