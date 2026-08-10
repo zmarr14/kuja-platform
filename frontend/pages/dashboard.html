@@ -3,115 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kuja AI — My Leads</title>
+  <title>Kuja — My Leads</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:opsz,wght@14..32,400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --ink:#0d0d0d;--cream:#f5f0e8;--cream-mid:#f0ebe0;--gold:#c9a84c;
-      --white:#ffffff;--mid:#6b6560;--border:rgba(201,168,76,0.25);--border-subtle:rgba(0,0,0,0.07);
-      --bg:#f5f0e8;--surface:#ffffff;--card:#ffffff;--sidebar-bg:#ffffff;
-      --nav-bg:rgba(245,240,232,0.92);--text:#0d0d0d;--text-mid:#6b6560;--text-muted:#9a9590;
-      --shadow:0 8px 32px rgba(0,0,0,0.08);
+      --ink:#131218;--cream:#F3EFE6;--cream-mid:#ECE6D8;--gold:#FF5A1F;
+      --white:#ffffff;--mid:#6b6560;--border:rgba(255,90,31,0.25);--border-subtle:rgba(19,18,24,0.08);
+      --bg:#F3EFE6;--surface:#ffffff;--card:#ffffff;--sidebar-bg:#ffffff;
+      --nav-bg:rgba(243,239,230,0.92);--text:#131218;--text-mid:#6b6560;--text-muted:#9a9590;
+      --shadow:0 8px 32px rgba(19,18,24,0.08);
     }
     [data-theme="dark"]{
-      --bg:#0d0d0d;--surface:#141414;--card:#1a1a1a;--sidebar-bg:#111111;
-      --nav-bg:rgba(13,13,13,0.97);--text:#f5f0e8;--text-mid:#8a8580;--text-muted:#555;
-      --border:rgba(201,168,76,0.2);--border-subtle:rgba(255,255,255,0.07);
-      --cream:#1a1a1a;--cream-mid:#141414;--white:#1a1a1a;--shadow:0 8px 32px rgba(0,0,0,0.5);
+      --bg:#131218;--surface:#1b1a20;--card:#201f26;--sidebar-bg:#17161c;
+      --nav-bg:rgba(19,18,24,0.97);--text:#F3EFE6;--text-mid:#948d80;--text-muted:#5c5a62;
+      --border:rgba(255,90,31,0.22);--border-subtle:rgba(255,255,255,0.07);
+      --cream:#1b1a20;--cream-mid:#17161c;--white:#1b1a20;--shadow:0 8px 32px rgba(0,0,0,0.5);
     }
     html{scroll-behavior:smooth}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
     nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0.9rem 2rem;background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);transition:background 0.3s}
-    .logo{display:inline-flex;align-items:center;text-decoration:none}
-    .logo svg{height:38px;width:auto;display:block}
+    .logo{display:inline-flex;align-items:center;gap:0.6rem;text-decoration:none}
+    .logo-mark{width:34px;height:34px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .logo-mark svg{width:18px;height:18px}
+    [data-theme="dark"] .logo-mark{background:var(--gold)}
+    [data-theme="dark"] .logo-mark svg path:nth-child(1),[data-theme="dark"] .logo-mark svg path:nth-child(3){stroke:#131218}
+    [data-theme="dark"] .logo-mark svg path:nth-child(2){stroke:#F3EFE6}
+    .logo-text{display:flex;flex-direction:column;line-height:1}
+    .logo-word{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;color:var(--text);letter-spacing:-0.01em}
+    .logo-tag{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
     .nav-right{display:flex;align-items:center;gap:0.85rem}
-    .nav-agency{font-size:0.78rem;font-weight:500;color:var(--text-mid);padding:0.35rem 0.75rem;border:1px solid var(--border);border-radius:2px}
-    .nav-unread{background:var(--gold);color:var(--ink);font-size:0.7rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:2px;display:none}
-    .theme-toggle{width:34px;height:34px;border-radius:2px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:all 0.2s}
+    .nav-agency{font-size:0.78rem;font-weight:500;color:var(--text-mid);padding:0.35rem 0.75rem;border:1px solid var(--border);border-radius:7px}
+    .nav-unread{background:var(--gold);color:#fff;font-size:0.7rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:6px;display:none}
+    .theme-toggle{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:all 0.2s}
     .theme-toggle:hover{border-color:var(--gold)}
     .logout-btn{font-size:0.8rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:color 0.2s}
     .logout-btn:hover{color:var(--text)}
     .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 62px)}
     .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-subtle);padding:1.5rem 1.25rem;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;display:flex;flex-direction:column;transition:background 0.3s}
-    .sidebar-section{font-size:0.65rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;margin-top:1.25rem}
+    .sidebar-section{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;margin-top:1.25rem}
     .sidebar-section:first-child{margin-top:0}
-    .nav-item{display:flex;align-items:center;gap:0.65rem;padding:0.55rem 0.7rem;border-radius:2px;font-size:0.85rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all 0.15s;text-decoration:none;margin-bottom:2px}
+    .nav-item{display:flex;align-items:center;gap:0.65rem;padding:0.55rem 0.7rem;border-radius:8px;font-size:0.85rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all 0.15s;text-decoration:none;margin-bottom:2px}
     .nav-item:hover{background:var(--cream-mid);color:var(--text)}
     .nav-item.active{background:var(--ink);color:var(--cream)}
-    [data-theme="dark"] .nav-item.active{background:var(--gold);color:var(--ink)}
+    [data-theme="dark"] .nav-item.active{background:var(--gold);color:#fff}
     .nav-item .icon{font-size:13px;width:16px;text-align:center}
-    .nav-badge{margin-left:auto;background:var(--gold);color:var(--ink);font-size:10px;font-weight:700;padding:1px 6px;border-radius:2px;display:none}
+    .nav-badge{margin-left:auto;background:var(--gold);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;display:none}
     .sidebar-footer{margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border-subtle)}
     .sidebar-user-name{font-size:0.82rem;font-weight:600;color:var(--text)}
     .sidebar-user-email{font-size:0.72rem;color:var(--text-muted);margin-top:2px}
     .main{padding:2rem 2.5rem;overflow-x:hidden}
     .page-header{margin-bottom:2rem}
-    .page-label{font-size:0.68rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem}
-    .page-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;letter-spacing:-0.02em;line-height:1.1;color:var(--text)}
-    .page-title em{font-style:italic;color:var(--gold)}
+    .page-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem}
+    .page-title{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:var(--text)}
+    .page-title em{font-style:normal;color:var(--gold)}
     .page-sub{font-size:0.85rem;color:var(--text-mid);margin-top:0.3rem}
     .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
-    .stat{background:var(--surface);border:1px solid var(--border-subtle);border-radius:2px;padding:1.25rem;transition:box-shadow 0.2s,background 0.3s}
+    .stat{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.25rem;transition:box-shadow 0.2s,background 0.3s}
     .stat:hover{box-shadow:var(--shadow)}
-    .stat-label{font-size:0.68rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);margin-bottom:0.4rem}
-    .stat-value{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;line-height:1;color:var(--text)}
+    .stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);margin-bottom:0.4rem}
+    .stat-value{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;line-height:1;color:var(--text)}
     .stat-value.gold{color:var(--gold)}
     .leads-toolbar{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap}
     .search-wrap{position:relative;flex:1;min-width:200px}
     .search-icon{position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none}
-    .search-input{width:100%;background:var(--surface);border:1px solid var(--border-subtle);border-radius:2px;padding:0.6rem 0.75rem 0.6rem 2.2rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;transition:border-color 0.2s,background 0.3s}
+    .search-input{width:100%;background:var(--surface);border:1px solid var(--border-subtle);border-radius:9px;padding:0.6rem 0.75rem 0.6rem 2.2rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.85rem;outline:none;transition:border-color 0.2s,background 0.3s}
     .search-input:focus{border-color:var(--gold)}
     .search-input::placeholder{color:var(--text-muted)}
-    .filter-tabs{display:flex;border:1px solid var(--border-subtle);border-radius:2px;overflow:hidden}
+    .filter-tabs{display:flex;border:1px solid var(--border-subtle);border-radius:9px;overflow:hidden}
     .filter-tab{padding:0.5rem 1rem;font-size:0.78rem;font-weight:500;cursor:pointer;color:var(--text-mid);transition:all 0.15s;user-select:none}
     .filter-tab.active{background:var(--ink);color:var(--cream)}
-    [data-theme="dark"] .filter-tab.active{background:var(--gold);color:var(--ink)}
+    [data-theme="dark"] .filter-tab.active{background:var(--gold);color:#fff}
     .filter-tab:not(.active):hover{background:var(--cream-mid)}
     .leads-count{font-size:0.78rem;color:var(--text-muted);margin-left:auto;white-space:nowrap}
     .leads-list{display:flex;flex-direction:column;gap:0.6rem}
-    .lead-card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:2px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;cursor:pointer;transition:box-shadow 0.2s,transform 0.2s,border-color 0.2s,background 0.3s;position:relative}
+    .lead-card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;cursor:pointer;transition:box-shadow 0.2s,transform 0.2s,border-color 0.2s,background 0.3s;position:relative}
     .lead-card:hover{box-shadow:var(--shadow);transform:translateY(-1px);border-color:var(--border)}
     .lead-card.unread{border-left:3px solid var(--gold)}
-    .lead-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;font-size:0.9rem;color:var(--gold)}
-    [data-theme="dark"] .lead-avatar{background:var(--gold);color:var(--ink)}
+    .lead-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.9rem;color:var(--gold)}
+    [data-theme="dark"] .lead-avatar{background:var(--gold);color:#fff}
     .lead-body{flex:1;min-width:0}
-    .lead-name{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;margin-bottom:0.25rem;color:var(--text)}
+    .lead-name{font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:0.25rem;color:var(--text)}
     .lead-contacts{display:flex;gap:1rem;flex-wrap:wrap}
     .lead-contact{font-size:0.78rem;color:var(--text-mid);display:flex;align-items:center;gap:0.3rem}
     .lead-preview{font-size:0.78rem;color:var(--text-muted);margin-top:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:500px}
     .lead-meta{text-align:right;flex-shrink:0}
     .lead-time{font-size:0.72rem;color:var(--text-muted)}
     .unread-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);margin-left:5px;vertical-align:middle}
-    .no-results{text-align:center;padding:3.5rem 2rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:2px}
+    .no-results{text-align:center;padding:3.5rem 2rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:16px}
     .no-results-icon{font-size:2.5rem;margin-bottom:0.75rem}
-    .no-results-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--text)}
+    .no-results-title{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--text)}
     .no-results-sub{font-size:0.85rem;color:var(--text-mid)}
-    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(13,13,13,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity 0.2s}
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(19,18,24,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity 0.2s}
     .modal-overlay.open{opacity:1;pointer-events:all}
-    .modal{background:var(--surface);border:1px solid var(--border-subtle);border-radius:2px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;transform:translateY(12px);transition:transform 0.2s,background 0.3s;box-shadow:0 32px 80px rgba(0,0,0,0.25)}
+    .modal{background:var(--surface);border:1px solid var(--border-subtle);border-radius:18px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;transform:translateY(12px);transition:transform 0.2s,background 0.3s;box-shadow:0 32px 80px rgba(19,18,24,0.25)}
     .modal-overlay.open .modal{transform:translateY(0)}
     .modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border-subtle);display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;transition:background 0.3s}
-    .modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--text)}
-    .modal-close{width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-subtle);border-radius:2px;color:var(--text-mid);font-size:13px;transition:all 0.15s;flex-shrink:0}
+    .modal-title{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text)}
+    .modal-close{width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-subtle);border-radius:8px;color:var(--text-mid);font-size:13px;transition:all 0.15s;flex-shrink:0}
     .modal-close:hover{background:var(--cream-mid);color:var(--text)}
     .modal-body{padding:1.25rem 1.5rem 1.5rem}
     .detail-row{display:flex;gap:0.75rem;margin-bottom:0.85rem;align-items:baseline}
-    .detail-label{font-size:0.68rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);width:65px;flex-shrink:0;padding-top:2px}
+    .detail-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);width:65px;flex-shrink:0;padding-top:2px}
     .detail-value{font-size:0.88rem;color:var(--text)}
     .detail-value a{color:var(--gold);text-decoration:none}
     .detail-value a:hover{text-decoration:underline}
-    .transcript-title{font-size:0.68rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);margin:1.25rem 0 0.6rem}
-    .transcript-box{background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:1rem;max-height:260px;overflow-y:auto;transition:background 0.3s}
+    .transcript-title{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);margin:1.25rem 0 0.6rem}
+    .transcript-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;max-height:260px;overflow-y:auto;transition:background 0.3s}
     .t-line{font-size:0.82rem;line-height:1.55;margin-bottom:0.5rem}
     .t-line.visitor{font-weight:500;color:var(--text)}
     .t-line.bot{color:var(--text-mid)}
     /* Settings */
     .settings-section{padding:1.25rem 1.5rem 1.5rem}
     .settings-group{margin-bottom:1.5rem}
-    .settings-group-title{font-size:0.68rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:0.75rem}
+    .settings-group-title{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:0.75rem}
     .setting-row{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--border-subtle)}
     .setting-row:last-child{border-bottom:none}
     .setting-label{font-size:0.88rem;font-weight:500;color:var(--text)}
@@ -132,20 +139,17 @@
 
 <nav>
   <a class="logo" href="https://kujaai.com">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 370 100" height="38">
-      <g transform="translate(6,2) scale(0.83)">
-        <ellipse cx="62" cy="66" rx="54" ry="52" fill="#f0ebe0"/><ellipse cx="24" cy="72" rx="18" ry="20" fill="#f0ebe0"/><ellipse cx="100" cy="72" rx="18" ry="20" fill="#f0ebe0"/><ellipse cx="38" cy="26" rx="18" ry="16" fill="#f0ebe0"/><ellipse cx="86" cy="26" rx="18" ry="16" fill="#f0ebe0"/><ellipse cx="62" cy="20" rx="22" ry="16" fill="#f0ebe0"/><ellipse cx="62" cy="68" rx="38" ry="36" fill="#fffdf9"/><ellipse cx="34" cy="35" rx="13" ry="15" fill="#e8e0d0" transform="rotate(-15 34 35)"/><ellipse cx="90" cy="35" rx="13" ry="15" fill="#e8e0d0" transform="rotate(15 90 35)"/><ellipse cx="34" cy="36" rx="7" ry="9" fill="#d4c8b8" transform="rotate(-15 34 36)"/><ellipse cx="90" cy="36" rx="7" ry="9" fill="#d4c8b8" transform="rotate(15 90 36)"/>
-        <ellipse cx="48" cy="62" rx="9" ry="9" fill="#1a1a1a"/><ellipse cx="48" cy="62" rx="4.5" ry="4.5" fill="#0d0d0d"/><ellipse cx="50" cy="60" rx="2" ry="2" fill="white"/>
-        <ellipse cx="76" cy="62" rx="9" ry="9" fill="#1a1a1a"/><ellipse cx="76" cy="62" rx="4.5" ry="4.5" fill="#0d0d0d"/><ellipse cx="78" cy="60" rx="2" ry="2" fill="white"/>
-        <ellipse cx="62" cy="77" rx="10" ry="7" fill="#0d0d0d"/><ellipse cx="59" cy="74.5" rx="2.5" ry="1.5" fill="rgba(255,255,255,0.35)"/>
-        <path d="M52 82 Q62 90 72 82" stroke="#c4b09a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        <circle cx="62" cy="45" r="4" fill="#c9a84c"/><circle cx="62" cy="45" r="2" fill="#0d0d0d"/>
-        <line x1="62" y1="41" x2="62" y2="37" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><line x1="65.5" y1="42.5" x2="68" y2="39" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/><line x1="58.5" y1="42.5" x2="56" y2="39" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
-      </g>
-      <text x="110" y="58" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="700" fill="#0d0d0d" letter-spacing="-1">KUJA</text>
-      <text x="222" y="58" font-family="Georgia,'Times New Roman',serif" font-size="40" font-weight="700" fill="#c9a84c" letter-spacing="-1"> AI</text>
-      <text x="112" y="75" font-family="'Helvetica Neue',Arial,sans-serif" font-size="9.5" fill="#8a7d6e" letter-spacing="3">INTELLIGENCE FOR BUSINESS</text>
-    </svg>
+    <div class="logo-mark">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 10L14 30" stroke="#F3EFE6" stroke-width="4" stroke-linecap="round"/>
+        <path d="M14 20L23 10" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>
+        <path d="M17 20L23 30" stroke="#F3EFE6" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span class="logo-word">Kuja</span>
+      <span class="logo-tag">Client Portal</span>
+    </div>
   </a>
   <div class="nav-right">
     <div class="nav-agency" id="navAgency">Loading...</div>
@@ -203,7 +207,7 @@
         <div class="page-title">Your <em>Settings</em></div>
         <div class="page-sub">Customise your dashboard experience</div>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:2px;transition:background 0.3s">
+      <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;transition:background 0.3s">
         <div class="settings-section">
           <div class="settings-group">
             <div class="settings-group-title">Appearance</div>
@@ -228,14 +232,14 @@
             <div class="setting-row"><div><div class="setting-label">Agency Name</div><div class="setting-sub" id="settingAgency">—</div></div></div>
             <div class="setting-row"><div><div class="setting-label">Login Email</div><div class="setting-sub" id="settingEmail">—</div></div></div>
             <div class="setting-row">
-              <div><div class="setting-label">Platform</div><div class="setting-sub">Kuja AI · Brisbane, Australia</div></div>
+              <div><div class="setting-label">Platform</div><div class="setting-sub">Kuja · Brisbane, Australia</div></div>
               <a href="https://kujaai.com" target="_blank" style="font-size:0.78rem;color:var(--gold);text-decoration:none">kujaai.com →</a>
             </div>
           </div>
           <div class="settings-group">
             <div class="settings-group-title">Support</div>
             <div class="setting-row">
-              <div><div class="setting-label">Need help?</div><div class="setting-sub">Contact Ezekiel at Kuja AI</div></div>
+              <div><div class="setting-label">Need help?</div><div class="setting-sub">Contact Ezekiel at Kuja</div></div>
               <a href="mailto:info@kujaai.com" style="font-size:0.78rem;color:var(--gold);text-decoration:none">Email us →</a>
             </div>
             <div class="setting-row">
