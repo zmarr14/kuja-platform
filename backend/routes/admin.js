@@ -28,14 +28,14 @@ router.get('/clients', (req, res) => {
 });
 
 router.post('/clients', (req, res) => {
-  const { name, email, password, agency_name, website } = req.body;
+  const { name, email, password, agency_name, website, calendly_url } = req.body;
   if (!name || !email || !password || !agency_name) return res.status(400).json({ error: 'name, email, password, agency_name required' });
   if (db.prepare('SELECT id FROM clients WHERE email = ?').get(email.toLowerCase().trim()))
     return res.status(409).json({ error: 'Email already exists' });
   const id = uuidv4();
   const api_key = 'kuja_' + uuidv4().replace(/-/g, '');
-  db.prepare('INSERT INTO clients (id, name, email, password, agency_name, website, api_key) VALUES (?, ?, ?, ?, ?, ?, ?)')
-    .run(id, name, email.toLowerCase().trim(), bcrypt.hashSync(password, 12), agency_name, website||null, api_key);
+  db.prepare('INSERT INTO clients (id, name, email, password, agency_name, website, api_key, calendly_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, name, email.toLowerCase().trim(), bcrypt.hashSync(password, 12), agency_name, website||null, api_key, calendly_url||null);
   const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(id);
   const { password: _, ...safe } = client;
   res.status(201).json({ client: safe });
@@ -44,14 +44,15 @@ router.post('/clients', (req, res) => {
 router.patch('/clients/:id', (req, res) => {
   const client = db.prepare('SELECT * FROM clients WHERE id = ?').get(req.params.id);
   if (!client) return res.status(404).json({ error: 'Not found' });
-  const { name, email, agency_name, website, plan, password } = req.body;
-  db.prepare('UPDATE clients SET name=?, email=?, agency_name=?, website=?, plan=?, password=? WHERE id=?').run(
+  const { name, email, agency_name, website, plan, password, calendly_url } = req.body;
+  db.prepare('UPDATE clients SET name=?, email=?, agency_name=?, website=?, plan=?, password=?, calendly_url=? WHERE id=?').run(
     name ?? client.name,
     email?.toLowerCase().trim() ?? client.email,
     agency_name ?? client.agency_name,
     website ?? client.website,
     plan ?? client.plan,
     password ? bcrypt.hashSync(password, 12) : client.password,
+    calendly_url ?? client.calendly_url,
     req.params.id
   );
   const updated = db.prepare('SELECT * FROM clients WHERE id = ?').get(req.params.id);
