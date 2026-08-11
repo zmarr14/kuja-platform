@@ -1,153 +1,804 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kuja — Platform Login</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:opsz,wght@14..32,400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--ink:#131218;--cream:#F3EFE6;--gold:#FF5A1F;--gold-light:#FFD2BE;--white:#ffffff;--mid:#6b6560;--border:rgba(255,90,31,0.25)}
-    html{scroll-behavior:smooth}
-    body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
-    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.25rem 4rem;background:rgba(243,239,230,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-    .logo{display:inline-flex;align-items:center;gap:0.65rem;text-decoration:none;line-height:1}
-    .logo-mark{width:38px;height:38px;border-radius:9px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .logo-mark svg{width:20px;height:20px}
-    .logo-text{display:flex;flex-direction:column;line-height:1}
-    .logo-word{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.15rem;color:var(--ink);letter-spacing:-0.01em}
-    .logo-tag{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--mid);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
-    .page{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;padding-top:76px}
-    .left{background:var(--ink);display:flex;flex-direction:column;justify-content:space-between;padding:4rem;position:relative;overflow:hidden}
-    .left::before{content:'';position:absolute;top:-10%;right:-10%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(255,90,31,0.1) 0%,transparent 70%);pointer-events:none}
-    .left-label{display:inline-flex;align-items:center;gap:0.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:2rem}
-    .left-label::before{content:'';display:block;width:2rem;height:1px;background:var(--gold)}
-    .left-headline{font-family:'Space Grotesk',sans-serif;font-size:clamp(2rem,3vw,2.8rem);font-weight:700;line-height:1.15;letter-spacing:-0.02em;color:var(--cream);margin-bottom:1.25rem}
-    .left-headline em{font-style:normal;color:var(--gold)}
-    .left-sub{font-size:0.95rem;line-height:1.7;color:rgba(243,239,230,0.5);max-width:360px;margin-bottom:2.5rem}
-    .left-bullets{list-style:none;display:flex;flex-direction:column;gap:0.65rem}
-    .left-bullets li{display:flex;align-items:center;gap:0.75rem;font-size:0.875rem;color:rgba(243,239,230,0.7)}
-    .left-bullets li::before{content:'→';color:var(--gold);font-size:0.75rem;flex-shrink:0}
-    .left-footer{margin-top:auto;padding-top:2.5rem;font-size:0.75rem;color:rgba(243,239,230,0.3)}
-    .left-footer a{color:rgba(255,90,31,0.65);text-decoration:none}
-    .left-footer a:hover{color:var(--gold)}
-    .right{background:var(--white);display:flex;align-items:center;justify-content:center;padding:4rem}
-    .form-box{width:100%;max-width:400px;animation:fadeUp 0.5s ease both}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-    .section-label{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
-    .form-title{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;letter-spacing:-0.02em;line-height:1.15;margin-bottom:0.5rem}
-    .form-sub{font-size:0.9rem;color:var(--mid);margin-bottom:2.25rem;line-height:1.6}
-    .tabs{display:flex;border:1px solid var(--border);border-radius:9px;margin-bottom:1.75rem;overflow:hidden}
-    .tab{flex:1;padding:0.65rem 1rem;text-align:center;font-size:0.82rem;font-weight:500;letter-spacing:0.02em;cursor:pointer;color:var(--mid);transition:all 0.2s;user-select:none;border:none;background:transparent}
-    .tab.active{background:var(--ink);color:var(--cream)}
-    .tab:not(.active):hover{background:var(--cream)}
-    .field{margin-bottom:1.1rem}
-    label{display:block;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--mid);margin-bottom:0.4rem}
-    input{width:100%;background:var(--white);border:1px solid rgba(255,90,31,0.3);border-radius:9px;padding:0.8rem 1rem;color:var(--ink);font-family:'Inter',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
-    input:focus{border-color:var(--gold)}
-    input::placeholder{color:#c0bab3}
-    .btn-submit{width:100%;background:var(--ink);color:var(--cream);border:none;border-radius:9px;padding:1rem;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;letter-spacing:0.01em;cursor:pointer;margin-top:0.5rem;transition:background 0.2s,transform 0.15s}
-    .btn-submit:hover{background:var(--gold);color:#fff;transform:translateY(-1px)}
-    .btn-submit:active{transform:translateY(0)}
-    .btn-submit:disabled{opacity:0.5;cursor:not-allowed;transform:none}
-    .err{font-size:0.82rem;color:#c0392b;margin-top:0.75rem;display:none;padding:0.6rem 0.8rem;border:1px solid rgba(192,57,43,0.2);border-radius:8px;background:rgba(192,57,43,0.04)}
-    .err.show{display:block}
-    .form-note{margin-top:1.5rem;font-size:0.8rem;color:var(--mid);text-align:center}
-    .form-note a{color:var(--gold);text-decoration:none}
-    @media(max-width:900px){nav{padding:1rem 1.5rem}.page{grid-template-columns:1fr}.left{display:none}.right{padding:2.5rem 1.5rem}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuja — tap-powered tools for local businesses</title>
+<meta name="description" content="Kuja makes the small tools that get your business more reviews, more connections, and more leads — NFC tap cards and AI chatbots, built in Brisbane.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23131218'/%3E%3Cpath d='M14 9L14 31' stroke='%23F3EFE6' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M14 20L24 9' stroke='%23FF5A1F' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M17.5 20L24 31' stroke='%23F3EFE6' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#131218;
+    --ink-soft:#1d1c24;
+    --paper:#F3EFE6;
+    --paper-dim:#E9E3D4;
+    --signal:#FF5A1F;
+    --signal-deep:#DB4512;
+    --mint:#5FEAB0;
+    --line:rgba(19,18,24,0.14);
+    --line-dark:rgba(243,239,230,0.14);
+    --muted:#635E52;
+    --muted-dark:#9A958A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter', sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+  a{color:inherit;} ul{list-style:none;}
+  .wrap{max-width:1160px; margin:0 auto; padding:0 32px; position:relative;}
+  :focus-visible{outline:2px solid var(--signal); outline-offset:3px;}
+  img, svg{display:block; max-width:100%;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}}
+
+  /* ---------- NAV ---------- */
+  nav{position:sticky; top:0; z-index:50; background:rgba(243,239,230,0.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; height:76px;}
+  .logo{display:flex; align-items:center; gap:10px; text-decoration:none;}
+  .logo-mark{width:36px; height:36px; background:var(--ink); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .logo-mark svg{width:20px; height:20px;}
+  .logo-word{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:19px; letter-spacing:-0.01em;}
+  nav ul{display:flex; gap:4px; align-items:center;}
+  nav a{font-size:14px; text-decoration:none; color:var(--ink); padding:9px 14px; font-weight:500; border-radius:7px; transition:color 0.15s, background 0.15s; position:relative;}
+  nav a:not(.nav-cta):hover{color:var(--signal-deep);}
+  .nav-cta{background:var(--ink); color:var(--paper) !important; font-weight:600; border-radius:7px;}
+  .nav-cta:hover{background:var(--signal) !important; color:var(--ink) !important;}
+  .nav-toggle{display:none; background:var(--ink); border:none; border-radius:8px; width:40px; height:40px; color:var(--paper); font-size:18px; cursor:pointer;}
+
+  /* ---------- BUTTONS ---------- */
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:14px 26px; font-size:14.5px; text-decoration:none; font-weight:600; font-family:'Inter', sans-serif; border:1.5px solid var(--ink); border-radius:9px; transition:all 0.18s ease; cursor:pointer;}
+  .btn-solid{background:var(--ink); color:var(--paper);}
+  .btn-solid:hover{background:var(--signal); border-color:var(--signal); color:var(--ink);}
+  .btn-outline{background:transparent; color:var(--ink);}
+  .btn-outline:hover{background:var(--ink); color:var(--paper);}
+  .btn-signal{background:var(--signal); color:var(--ink); border-color:var(--signal);}
+  .btn-signal:hover{background:var(--signal-deep); border-color:var(--signal-deep); color:var(--paper);}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:76px 0 56px; position:relative; overflow:hidden;}
+  .hero-grid{display:grid; grid-template-columns:1.1fr 1fr; gap:56px; align-items:center; position:relative; z-index:1;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--signal-deep); margin-bottom:20px;}
+  .eyebrow::before{content:''; width:7px; height:7px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 3px rgba(255,90,31,0.18);}
+  h1{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(34px, 4.6vw, 54px); line-height:1.06; letter-spacing:-0.02em;}
+  h1 .accent{color:var(--signal-deep);}
+  .hero-sub{margin-top:22px; max-width:460px; font-size:16.5px; color:var(--muted);}
+  .hero-cta{margin-top:30px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+
+  /* tap ripple signature */
+  .hero-art{display:flex; justify-content:center; align-items:center; position:relative; min-height:400px;}
+  .tap-stage{position:relative; width:100%; max-width:360px; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;}
+  .ripple{position:absolute; border-radius:50%; border:1.5px solid var(--signal); opacity:0; animation:rippleOut 3.2s cubic-bezier(0.2,0.6,0.4,1) infinite;}
+  .ripple:nth-child(1){animation-delay:0s;}
+  .ripple:nth-child(2){animation-delay:0.9s;}
+  .ripple:nth-child(3){animation-delay:1.8s;}
+  @keyframes rippleOut{
+    0%{width:70px; height:70px; opacity:0.8; border-width:2px;}
+    70%{opacity:0.12;}
+    100%{width:380px; height:380px; opacity:0;}
+  }
+  .tap-card-photo{position:relative; z-index:2; width:230px; border-radius:18px; box-shadow:0 24px 60px -18px rgba(19,18,24,0.45); border:1px solid rgba(19,18,24,0.06);}
+
+  /* phone mock showing the tap experience */
+  .phone-mock{position:relative; z-index:2; width:216px; aspect-ratio:9/18.5; border-radius:34px; background:var(--ink); padding:10px; box-shadow:0 30px 60px -18px rgba(19,18,24,0.5); animation:phoneFloat 4.5s ease-in-out infinite;}
+  .phone-notch{position:absolute; top:10px; left:50%; transform:translateX(-50%); width:70px; height:18px; background:var(--ink); border-radius:0 0 12px 12px; z-index:3;}
+  .phone-screen{position:relative; width:100%; height:100%; border-radius:26px; background:linear-gradient(160deg, var(--paper) 0%, var(--paper-dim) 100%); overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px 16px;}
+  .phone-brand{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13px; color:var(--ink); letter-spacing:-0.01em; position:absolute; top:18px; left:0; right:0; text-align:center;}
+  .phone-ripples{position:relative; width:74px; height:74px; display:flex; align-items:center; justify-content:center;}
+  .phone-ripple{position:absolute; border-radius:50%; border:1.5px solid var(--signal); opacity:0; animation:phoneRipple 2.6s cubic-bezier(0.2,0.6,0.4,1) infinite;}
+  .phone-ripple:nth-child(1){animation-delay:0s;}
+  .phone-ripple:nth-child(2){animation-delay:0.7s;}
+  .phone-ripple:nth-child(3){animation-delay:1.4s;}
+  .phone-ripple-core{position:relative; z-index:1; width:34px; height:34px; border-radius:50%; background:var(--ink); display:flex; align-items:center; justify-content:center;}
+  .phone-ripple-core svg{width:17px; height:17px;}
+  .phone-stars{display:flex; gap:3px;}
+  .phone-stars svg{width:13px; height:13px;}
+  .phone-msg{font-size:11px; color:var(--muted); text-align:center; font-weight:500; line-height:1.35;}
+  .phone-msg strong{color:var(--ink); font-weight:700;}
+  @keyframes phoneFloat{0%,100%{transform:translateY(0) rotate(-1.2deg);} 50%{transform:translateY(-10px) rotate(1.2deg);}}
+  @keyframes phoneRipple{0%{width:20px; height:20px; opacity:0.55;} 100%{width:80px; height:80px; opacity:0;}}
+  .tap-point{position:absolute; z-index:3; width:14px; height:14px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 4px rgba(255,90,31,0.25); bottom:30%; right:22%;}
+
+  /* ---------- TICKER ---------- */
+  .ticker{background:var(--ink); color:var(--paper); padding:13px 0; overflow:hidden; border-top:1px solid var(--line-dark); border-bottom:1px solid var(--line-dark);}
+  .ticker-track{display:flex; gap:40px; white-space:nowrap; font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:12.5px; letter-spacing:0.04em; animation:scroll 28s linear infinite; width:max-content;}
+  .ticker-track span.dot{color:var(--signal);}
+  @keyframes scroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+
+  /* ---------- SECTION ---------- */
+  .section{padding:100px 0;}
+  .section-head{max-width:600px; margin:0 0 48px;}
+  .section-head.center{margin:0 auto 48px; text-align:center;}
+  .section-tag{font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--signal-deep); display:block; margin-bottom:14px;}
+  .section-head h2{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(28px, 3.6vw, 40px); line-height:1.12; letter-spacing:-0.015em;}
+  .section-head p{margin-top:14px; color:var(--muted); font-size:15.5px;}
+
+  /* ---------- PRODUCTS ---------- */
+  .products{display:grid; grid-template-columns:repeat(3, 1fr); gap:20px;}
+  .pcard{border:1.5px solid var(--line); border-radius:16px; padding:28px; display:flex; flex-direction:column; gap:14px; background:var(--paper); transition:border-color 0.2s, transform 0.2s;}
+  .pcard:hover{border-color:var(--ink); transform:translateY(-3px);}
+  .picon{width:46px; height:46px; border-radius:11px; background:var(--ink); display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .picon img{width:100%; height:100%; object-fit:cover;}
+  .picon svg{width:22px; height:22px;}
+  .pname{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:19px; letter-spacing:-0.01em;}
+  .pdesc{color:var(--muted); font-size:14px; flex-grow:1;}
+  .ptag{display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); align-self:flex-start;}
+  .ptag::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--mint);}
+  .ptag.soon::before{background:var(--muted-dark);}
+  .ptag.soon{color:var(--muted-dark);}
+  .plink{display:inline-flex; align-items:center; gap:6px; font-size:13.5px; font-weight:600; text-decoration:none; color:var(--signal-deep); align-self:flex-start;}
+  .plink svg{width:14px; height:14px; transition:transform 0.15s;}
+  .plink:hover svg{transform:translate(2px,-2px);}
+
+  /* ---------- AI TEASER ---------- */
+  .ai-teaser{background:var(--ink); color:var(--paper); border-radius:18px; padding:34px 38px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; position:relative; overflow:hidden;}
+  .ai-teaser::before{content:''; position:absolute; top:-60%; right:-8%; width:280px; height:280px; border-radius:50%; border:1px solid var(--line-dark);}
+  .ai-teaser::after{content:''; position:absolute; top:-30%; right:2%; width:180px; height:180px; border-radius:50%; border:1px solid var(--line-dark);}
+  .ai-teaser-eyebrow{font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--signal); flex-shrink:0; position:relative; z-index:1;}
+  .ai-teaser-heading{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:20px; flex-shrink:0; position:relative; z-index:1; letter-spacing:-0.01em;}
+  .ai-teaser-sub{color:var(--muted-dark); font-size:14px; flex:1; min-width:220px; position:relative; z-index:1;}
+  .ai-teaser-btn{flex-shrink:0; position:relative; z-index:1;}
+  @media (max-width: 780px){ .ai-teaser{padding:26px 24px;} }
+
+  /* ---------- STEPS ---------- */
+  .steps{display:grid; grid-template-columns:repeat(3, 1fr); gap:20px;}
+  .step{border-top:1.5px solid var(--ink); padding-top:20px;}
+  .step-num{font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:12px; color:var(--signal-deep); margin-bottom:14px; letter-spacing:0.04em;}
+  .step h3{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:18px; margin-bottom:8px; letter-spacing:-0.01em;}
+  .step p{color:var(--muted); font-size:14px;}
+
+  /* ---------- CONTACT ---------- */
+  .contact{background:var(--ink); color:var(--paper); border-radius:24px; padding:76px 40px; text-align:center; position:relative; overflow:hidden;}
+  .contact::before{content:''; position:absolute; width:500px; height:500px; border-radius:50%; border:1px solid var(--line-dark); top:-260px; left:50%; transform:translateX(-50%);}
+  .contact h2{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(28px, 4vw, 42px); position:relative; z-index:1; letter-spacing:-0.015em;}
+  .contact p{color:var(--muted-dark); max-width:460px; margin:16px auto 32px; position:relative; z-index:1; font-size:15.5px;}
+  .contact-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; position:relative; z-index:1;}
+  .contact .btn-outline{border-color:var(--paper); color:var(--paper);}
+  .contact .btn-outline:hover{background:var(--paper); color:var(--ink);}
+
+  footer{padding:36px 32px 32px; border-top:1px solid var(--line);}
+  footer .wrap{display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:12px;}
+  footer p{font-size:13px; color:var(--muted); font-family:'IBM Plex Mono', monospace;}
+  footer a{font-weight:600; text-decoration:none; color:var(--ink); border-bottom:1px solid var(--ink);}
+
+  /* ---------- CONTACT MODAL ---------- */
+  .modal-overlay{position:fixed; inset:0; z-index:1000; background:rgba(19,18,24,0.7); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s;}
+  .modal-overlay.open{opacity:1; pointer-events:all;}
+  .contact-modal{background:var(--paper); width:100%; max-width:500px; position:relative; transform:translateY(14px) scale(0.98); transition:transform 0.25s; border-radius:18px; overflow:hidden; max-height:88vh; overflow-y:auto; box-shadow:0 40px 100px -20px rgba(19,18,24,0.5);}
+  .modal-overlay.open .contact-modal{transform:translateY(0) scale(1);}
+  .modal-top{background:var(--ink); color:var(--paper); padding:28px 32px 22px; position:relative;}
+  .modal-top h2{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:22px; letter-spacing:-0.01em;}
+  .modal-top h2 .accent{color:var(--signal);}
+  .modal-top p{font-size:13px; color:var(--muted-dark); margin-top:6px;}
+  .modal-close-btn{position:absolute; top:16px; right:16px; width:30px; height:30px; border:1px solid var(--line-dark); background:none; color:var(--paper); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; border-radius:7px; transition:all 0.2s;}
+  .modal-close-btn:hover{background:var(--signal); border-color:var(--signal); color:var(--ink);}
+  .modal-body{padding:24px 32px 30px;}
+  .form-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .form-group{margin-bottom:14px;}
+  .form-label{display:block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); margin-bottom:7px;}
+  .form-input{width:100%; background:#fff; border:1.5px solid var(--line); padding:11px 14px; font-size:14px; color:var(--ink); font-family:'Inter', sans-serif; outline:none; border-radius:9px; transition:border-color 0.15s;}
+  .form-input:focus{border-color:var(--signal);}
+  textarea.form-input{resize:vertical; min-height:76px; font-family:inherit;}
+  .form-submit{width:100%; margin-top:4px; justify-content:center;}
+  .form-success{text-align:center; padding:18px 0; display:none;}
+  .form-success-icon{width:44px; height:44px; border-radius:50%; background:var(--ink); display:flex; align-items:center; justify-content:center; margin:0 auto 14px;}
+  .form-success h3{font-family:'Space Grotesk', sans-serif; font-size:18px; margin-bottom:6px; letter-spacing:-0.01em;}
+  .form-success p{font-size:13.5px; color:var(--muted);}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px){
+    .products, .steps{grid-template-columns:1fr;}
+  }
+  @media (max-width: 780px){
+    nav ul{
+      position:fixed; top:76px; left:0; right:0; background:var(--paper);
+      flex-direction:column; align-items:stretch; padding:14px 32px; gap:6px;
+      border-bottom:1px solid var(--line);
+      transform:translateY(-150%); transition:transform 0.2s ease; opacity:0;
+    }
+    nav ul.open{transform:translateY(0); opacity:1;}
+    nav a{padding:13px 14px;}
+    .nav-toggle{display:block;}
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-art{order:-1; min-height:280px;}
+    .section{padding:64px 0;}
+    .contact{padding:52px 24px;}
+    .form-row{grid-template-columns:1fr;}
+    .ai-panel{right:16px; left:16px; width:auto; bottom:88px; height:min(520px, calc(100vh - 120px));}
+    .ai-launcher{right:16px; bottom:16px;}
+  }
+
+  /* ---------- AI ASSISTANT WIDGET ---------- */
+  .ai-launcher{position:fixed; bottom:24px; right:24px; z-index:90; width:58px; height:58px; border-radius:50%; background:var(--ink); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 14px 32px -10px rgba(19,18,24,0.5); transition:transform 0.15s ease;}
+  .ai-launcher:hover{transform:scale(1.06);}
+  .ai-launcher svg{width:24px; height:24px;}
+  .ai-launcher-dot{position:absolute; top:5px; right:5px; width:11px; height:11px; border-radius:50%; background:var(--mint); box-shadow:0 0 0 3px var(--ink);}
+  .ai-panel{position:fixed; bottom:94px; right:24px; z-index:91; width:368px; max-width:calc(100vw - 32px); height:530px; max-height:calc(100vh - 140px); background:var(--paper); border-radius:18px; box-shadow:0 34px 80px -20px rgba(19,18,24,0.5); border:1px solid var(--line); display:flex; flex-direction:column; overflow:hidden; opacity:0; pointer-events:none; transform:translateY(18px) scale(0.97); transition:opacity 0.2s ease, transform 0.2s ease;}
+  .ai-panel.open{opacity:1; pointer-events:auto; transform:translateY(0) scale(1);}
+  .ai-panel-header{background:var(--ink); padding:16px 16px 16px 18px; display:flex; align-items:center; gap:11px; flex-shrink:0;}
+  .ai-avatar{width:36px; height:36px; border-radius:50%; background:var(--signal); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .ai-avatar svg{width:19px; height:19px;}
+  .ai-panel-title{flex:1; min-width:0;}
+  .ai-panel-name{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:14px; color:var(--paper);}
+  .ai-panel-status{font-size:11px; color:var(--mint); display:flex; align-items:center; gap:5px; margin-top:2px;}
+  .ai-panel-status::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--mint);}
+  .ai-panel-close{background:none; border:none; color:var(--paper); opacity:0.65; cursor:pointer; font-size:16px; padding:6px; line-height:1;}
+  .ai-panel-close:hover{opacity:1;}
+  .ai-body{flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; background:var(--paper);}
+  .ai-msg{max-width:84%; padding:10px 13px; border-radius:13px; font-size:13.5px; line-height:1.5;}
+  .ai-msg-bot{background:#fff; border:1px solid var(--line); color:var(--ink); align-self:flex-start; border-bottom-left-radius:3px;}
+  .ai-book-btn{display:inline-block; margin-top:8px; background:var(--signal); color:#fff; font-weight:600; font-size:13px; padding:8px 14px; border-radius:8px; text-decoration:none;}
+  .ai-book-btn:hover{opacity:0.9;}
+  .ai-msg-user{background:var(--ink); color:var(--paper); align-self:flex-end; border-bottom-right-radius:3px;}
+  .ai-typing{align-self:flex-start; display:flex; gap:4px; padding:12px 13px; background:#fff; border:1px solid var(--line); border-radius:13px; border-bottom-left-radius:3px;}
+  .ai-typing span{width:6px; height:6px; border-radius:50%; background:var(--muted-dark); animation:aiTyping 1.2s infinite;}
+  .ai-typing span:nth-child(2){animation-delay:0.2s;}
+  .ai-typing span:nth-child(3){animation-delay:0.4s;}
+  @keyframes aiTyping{0%,60%,100%{opacity:0.35; transform:translateY(0);} 30%{opacity:1; transform:translateY(-3px);}}
+  .ai-input-row{display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); background:#fff; flex-shrink:0;}
+  .ai-input{flex:1; border:1.5px solid var(--line); border-radius:9px; padding:9px 12px; font-size:13.5px; font-family:'Inter', sans-serif; outline:none; background:var(--paper); color:var(--ink);}
+  .ai-input:focus{border-color:var(--signal);}
+  .ai-send{background:var(--ink); color:var(--paper); border:none; border-radius:9px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:background 0.15s ease;}
+  .ai-send:hover{background:var(--signal);}
+  .ai-send:disabled{opacity:0.5; cursor:default;}
+  .ai-send svg{width:16px; height:16px;}
+</style>
 </head>
 <body>
+
 <nav>
-  <a class="logo" href="https://kujaai.com">
-    <div class="logo-mark">
-      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M14 10L14 30" stroke="#F3EFE6" stroke-width="4" stroke-linecap="round"/>
-        <path d="M14 20L23 10" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>
-        <path d="M17 20L23 30" stroke="#F3EFE6" stroke-width="4" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="logo-text">
+  <div class="wrap">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 10L14 30" stroke="#F3EFE6" stroke-width="4" stroke-linecap="round"/>
+          <path d="M14 20L23 10" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>
+          <path d="M17 20L23 30" stroke="#F3EFE6" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
       <span class="logo-word">Kuja</span>
-      <span class="logo-tag">Intelligence for Business</span>
-    </div>
-  </a>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+    <ul id="navMenu">
+      <li><a href="#products">Products</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="kuja-ai.html">Kuja AI</a></li>
+      <li><a href="#" class="nav-cta" onclick="openContactModal();return false;">Get in touch</a></li>
+    </ul>
+  </div>
 </nav>
 
-<div class="page">
-  <div class="left">
+<header class="hero">
+  <div class="wrap hero-grid">
     <div>
-      <div class="left-label">Client Platform</div>
-      <div class="left-headline">Every lead,<br><em>every conversation,</em><br>in one place.</div>
-      <div class="left-sub">Your real-time dashboard for leads captured by your Kuja AI chatbot. See who's enquiring, read the full conversation, and follow up fast.</div>
-      <ul class="left-bullets">
-        <li>Leads captured in real time, 24/7</li>
-        <li>Full conversation transcripts</li>
-        <li>Instant email notifications</li>
-        <li>Name, phone &amp; email for every lead</li>
-      </ul>
+      <span class="eyebrow">Now selling in Brisbane</span>
+      <h1>Get more customers <span class="accent">without lifting a finger.</span></h1>
+      <p class="hero-sub">Kuja makes the small tools that get your business more 5-star reviews, more bookings, and more repeat customers — no apps, no setup, no tech headache.</p>
+      <div class="hero-cta">
+        <a href="#products" class="btn btn-solid">Shop the tools</a>
+        <a href="kuja-ai.html" class="btn btn-outline">See Kuja AI</a>
+      </div>
     </div>
-    <div class="left-footer">© 2026 Kuja · Brisbane, Australia · <a href="mailto:info@kujaai.com">info@kujaai.com</a></div>
+
+    <div class="hero-art">
+      <div class="phone-mock">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <span class="phone-brand">Kuja</span>
+          <div class="phone-ripples">
+            <div class="phone-ripple"></div>
+            <div class="phone-ripple"></div>
+            <div class="phone-ripple"></div>
+            <div class="phone-ripple-core">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9a8 8 0 0 1 0 6" stroke="#F3EFE6" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/>
+                <path d="M9.5 6.5a12 12 0 0 1 0 11" stroke="#F3EFE6" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>
+                <circle cx="14.5" cy="12" r="2.3" fill="#FF5A1F"/>
+              </svg>
+            </div>
+          </div>
+          <div class="phone-stars">
+            <svg viewBox="0 0 24 24" fill="#FF5A1F"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#FF5A1F"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#FF5A1F"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#FF5A1F"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#FF5A1F"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z"/></svg>
+          </div>
+          <p class="phone-msg">Tap to leave a<br><strong>5-star review</strong></p>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="right">
-    <div class="form-box">
-      <div class="section-label">Secure Access</div>
-      <div class="form-title">Sign in to your<br><em>dashboard.</em></div>
-      <div class="form-sub">Access your leads, transcripts and contact details.</div>
-      <div class="tabs">
-        <div class="tab active" id="tab-client" onclick="switchTab('client')">Client Login</div>
-        <div class="tab" id="tab-admin" onclick="switchTab('admin')">Admin</div>
+</header>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>MORE 5-STAR REVIEWS</span><span class="dot">·</span>
+    <span>NO APP NEEDED</span><span class="dot">·</span>
+    <span>SET UP IN 10 SECONDS</span><span class="dot">·</span>
+    <span>BUILT IN BRISBANE</span><span class="dot">·</span>
+    <span>MORE 5-STAR REVIEWS</span><span class="dot">·</span>
+    <span>NO APP NEEDED</span><span class="dot">·</span>
+    <span>SET UP IN 10 SECONDS</span><span class="dot">·</span>
+    <span>BUILT IN BRISBANE</span><span class="dot">·</span>
+  </div>
+</div>
+
+<section class="section" id="products">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="section-tag">Our tools</span>
+      <h2>Small tools. Big difference.</h2>
+      <p>Everything Kuja makes is built to work in one tap — for your customers and for you.</p>
+    </div>
+
+    <div class="products">
+      <div class="pcard">
+        <div class="picon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z" stroke="#F3EFE6" stroke-width="2" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="pname">Review tap card</div>
+        <div class="pdesc">Customers tap their phone, your Google review page opens instantly. No typing, no searching, no excuses.</div>
+        <span class="ptag">In stock</span>
       </div>
-      <div class="field">
-        <label>Email Address</label>
-        <input type="email" id="email" placeholder="you@agency.com.au" autocomplete="email">
+
+      <div class="pcard">
+        <div class="picon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M2 9C7 4 17 4 22 9" stroke="#F3EFE6" stroke-width="2" stroke-linecap="round"/><path d="M5.5 13C9 10 15 10 18.5 13" stroke="#F3EFE6" stroke-width="2" stroke-linecap="round"/><path d="M9 17C10.5 15.5 13.5 15.5 15 17" stroke="#F3EFE6" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="20.5" r="1.4" fill="#F3EFE6"/></svg>
+        </div>
+        <div class="pname">WiFi tap card</div>
+        <div class="pdesc">Skip the "what's the WiFi password" question forever. One tap and customers are connected.</div>
+        <span class="ptag soon">Coming soon</span>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+
+      <div class="pcard">
+        <div class="picon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 5H20V16H9L4 20V5Z" stroke="#F3EFE6" stroke-width="2" stroke-linejoin="round"/><circle cx="9" cy="10.5" r="1.1" fill="#F3EFE6"/><circle cx="12" cy="10.5" r="1.1" fill="#F3EFE6"/><circle cx="15" cy="10.5" r="1.1" fill="#F3EFE6"/></svg>
+        </div>
+        <div class="pname">Kuja AI</div>
+        <div class="pdesc">A done-for-you chatbot that qualifies buyers and sellers 24/7 and lands every lead straight in your inbox — built for real estate agents.</div>
+        <a href="kuja-ai.html" class="plink">See how it works <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H9M17 7V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
-      <button class="btn-submit" id="loginBtn" onclick="handleLogin()">Sign In →</button>
-      <div class="err" id="errMsg"></div>
-      <div class="form-note">No account? <a href="mailto:info@kujaai.com">Contact Kuja</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ai-teaser">
+      <span class="ai-teaser-eyebrow">A Kuja product</span>
+      <h3 class="ai-teaser-heading">Kuja AI never misses a lead.</h3>
+      <p class="ai-teaser-sub">A done-for-you chatbot that qualifies buyers and sellers 24/7 and lands every lead straight in your inbox — built for real estate agents.</p>
+      <a href="kuja-ai.html" class="btn btn-signal ai-teaser-btn">See Kuja AI <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M7 17L17 7M17 7H9M17 7V15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="section-tag">How it works</span>
+      <h2>Three steps. That's it.</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num mono">01 — DROP BY</div>
+        <h3>We drop by</h3>
+        <p>One of our guys brings a sample tool to your counter — no appointment needed.</p>
+      </div>
+      <div class="step">
+        <div class="step-num mono">02 — TRY IT</div>
+        <h3>You try it</h3>
+        <p>Tap your own phone on it. See exactly what your customers will see.</p>
+      </div>
+      <div class="step">
+        <div class="step-num mono">03 — DONE</div>
+        <h3>It just works</h3>
+        <p>Leave it on the counter. No setup, no charging, no app for you to manage.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="contact">
+  <div class="contact wrap" style="max-width:1160px;">
+    <h2>Want one on your counter?</h2>
+    <p>We're out knocking on doors around Fortitude Valley, West End, and New Farm. Flag us down, or reach out directly.</p>
+    <div class="contact-cta">
+      <a href="#" class="btn btn-signal" onclick="openContactModal();return false;">Get in touch</a>
+      <a href="kuja-ai.html" class="btn btn-outline">Kuja AI page</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>&copy; 2026 KUJA — BRISBANE, QLD</p>
+    <p><a href="kuja-ai.html">Kuja AI</a></p>
+  </div>
+</footer>
+
+<!-- CONTACT MODAL -->
+<div class="modal-overlay" id="contactModal" onclick="closeModalIfBg(event)">
+  <div class="contact-modal">
+    <button class="modal-close-btn" onclick="closeContactModal()">✕</button>
+    <div class="modal-top">
+      <h2>Let's get you <span class="accent">set up</span></h2>
+      <p>Tell us what you're after and we'll be in touch within 24 hours.</p>
+    </div>
+    <div class="modal-body">
+      <div id="contactForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First name</label>
+            <input class="form-input" type="text" id="fname" placeholder="John">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last name</label>
+            <input class="form-input" type="text" id="lname" placeholder="Smith">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input class="form-input" type="email" id="cemail" placeholder="john@yourbusiness.com.au">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone number</label>
+          <input class="form-input" type="tel" id="cphone" placeholder="0400 000 000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Business name (optional)</label>
+          <input class="form-input" type="text" id="cbusiness" placeholder="Your business name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">What are you interested in?</label>
+          <textarea class="form-input" id="cmessage" placeholder="Review tap card, WiFi tap card, Kuja AI, or tell us what you need..."></textarea>
+        </div>
+        <button class="btn btn-signal form-submit" onclick="submitContactForm()">Send enquiry</button>
+      </div>
+      <div class="form-success" id="formSuccess">
+        <div class="form-success-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12L9 17L20 6" stroke="#F3EFE6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>We'll be in touch!</h3>
+        <p>Thanks for reaching out. We'll contact you within 24 hours.</p>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  const API_BASE = window.location.origin;
-  let currentTab = 'client';
-  const token = localStorage.getItem('kuja_token');
-  const role = localStorage.getItem('kuja_role');
-  if (token && role === 'client') window.location.href = '/pages/dashboard.html';
-  if (token && role === 'admin') window.location.href = '/pages/admin.html';
-  function switchTab(tab) {
-    currentTab = tab;
-    document.getElementById('tab-client').classList.toggle('active', tab === 'client');
-    document.getElementById('tab-admin').classList.toggle('active', tab === 'admin');
-    document.getElementById('errMsg').classList.remove('show');
-  }
-  document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
-  async function handleLogin() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const btn = document.getElementById('loginBtn');
-    const err = document.getElementById('errMsg');
-    if (!email || !password) { showErr('Please enter your email and password.'); return; }
-    btn.disabled = true; btn.textContent = 'Signing in…'; err.classList.remove('show');
-    const endpoint = currentTab === 'admin' ? `${API_BASE}/api/auth/admin/login` : `${API_BASE}/api/auth/client/login`;
-    try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
-      const data = await res.json();
-      if (!res.ok) { showErr(data.error || 'Login failed.'); return; }
-      localStorage.setItem('kuja_token', data.token); localStorage.setItem('kuja_role', currentTab);
-      if (currentTab === 'admin') { localStorage.setItem('kuja_admin', JSON.stringify(data.admin)); window.location.href = '/pages/admin.html'; }
-      else { localStorage.setItem('kuja_client', JSON.stringify(data.client)); window.location.href = '/pages/dashboard.html'; }
-    } catch { showErr('Connection error. Please try again.'); }
-    finally { btn.disabled = false; btn.textContent = 'Sign In →'; }
-  }
-  function showErr(msg) { const el = document.getElementById('errMsg'); el.textContent = msg; el.classList.add('show'); }
+  const toggle = document.getElementById('navToggle');
+  const menu = document.getElementById('navMenu');
+  toggle.addEventListener('click', () => {
+    const isOpen = menu.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+  });
+  menu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      menu.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
 </script>
+
+<script>
+function openContactModal(){document.getElementById('contactModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeContactModal(){document.getElementById('contactModal').classList.remove('open');document.body.style.overflow='';}
+function closeModalIfBg(e){if(e.target===document.getElementById('contactModal'))closeContactModal();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeContactModal();});
+
+function submitContactForm(){
+  var fname=document.getElementById('fname').value.trim();
+  var email=document.getElementById('cemail').value.trim();
+  if(!fname||!email){alert('Please enter your name and email.');return;}
+  var phone=document.getElementById('cphone').value.trim();
+  var business=document.getElementById('cbusiness').value.trim();
+  var message=document.getElementById('cmessage').value.trim();
+
+  fetch('https://web-production-416a4f.up.railway.app/api/leads/webhook',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      api_key:'kuja_7828916b91d242599da5efe7692840fa',
+      name:fname+' '+(document.getElementById('lname').value.trim()),
+      phone:phone,
+      email:email,
+      transcript:'Website Enquiry (kuja.com.au homepage)\nBusiness: '+(business||'Not provided')+'\nInterested in: '+(message||'Not specified'),
+      source_page:'kuja homepage contact form'
+    })
+  }).catch(function(){});
+
+  document.getElementById('contactForm').style.display='none';
+  document.getElementById('formSuccess').style.display='block';
+  setTimeout(function(){closeContactModal();},4000);
+  setTimeout(function(){
+    document.getElementById('contactForm').style.display='';
+    document.getElementById('formSuccess').style.display='none';
+    ['fname','lname','cemail','cphone','cbusiness','cmessage'].forEach(function(id){
+      var el=document.getElementById(id);if(el)el.value='';
+    });
+  },4500);
+}
+</script>
+
+<!-- AI ASSISTANT WIDGET -->
+<button class="ai-launcher" id="aiLauncher" aria-label="Chat with the Kuja assistant">
+  <svg viewBox="0 0 24 24" fill="none"><path d="M4 12C4 7.58 7.58 4 12 4s8 3.58 8 8-3.58 8-8 8c-1.14 0-2.22-.24-3.2-.68L4 20l1.02-4.06A7.94 7.94 0 0 1 4 12Z" stroke="#F3EFE6" stroke-width="1.8" stroke-linejoin="round"/></svg>
+  <span class="ai-launcher-dot"></span>
+</button>
+
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-panel-header">
+    <div class="ai-avatar">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z" fill="#131218"/></svg>
+    </div>
+    <div class="ai-panel-title">
+      <div class="ai-panel-name">Kuja Assistant</div>
+      <div class="ai-panel-status">Online now</div>
+    </div>
+    <button class="ai-panel-close" id="aiClose" aria-label="Close chat">✕</button>
+  </div>
+  <div class="ai-body" id="aiBody"></div>
+  <div class="ai-input-row">
+    <input class="ai-input" id="aiInput" type="text" placeholder="Ask about our tools..." autocomplete="off">
+    <button class="ai-send" id="aiSend" aria-label="Send message">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 12L20 4L14 20L11 13L4 12Z" stroke="#F3EFE6" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var WORKER_URL = 'https://billowing-water-5807.joicvmarr4.workers.dev';
+  var PLATFORM_URL = 'https://web-production-416a4f.up.railway.app';
+  var API_KEY = 'kuja_7828916b91d242599da5efe7692840fa';
+
+  var launcher = document.getElementById('aiLauncher');
+  var panel = document.getElementById('aiPanel');
+  var closeBtn = document.getElementById('aiClose');
+  var body = document.getElementById('aiBody');
+  var input = document.getElementById('aiInput');
+  var sendBtn = document.getElementById('aiSend');
+
+  var isOpen = false;
+  var messages = [];
+  var leadStage = null;
+  var leadData = {};
+  var isLoading = false;
+
+  var CALENDAR_API_KEY = 'kuja_7828916b91d242599da5efe7692840fa';
+  var bookingStage = null;
+  var selectedSlot = null;
+  var bookingData_name = null;
+
+  var SYSTEM = "You are the AI sales assistant embedded on the Kuja website (kujaai.com), a Brisbane company selling small \"tap\" tools for local businesses.\n\n" +
+    "WHAT KUJA SELLS (only talk about these three things — never invent products, features, or prices you don't know):\n" +
+    "1. Review tap card — an NFC card/plaque for the counter. Customer taps their phone, their Google review page opens instantly, no app needed. IN STOCK now.\n" +
+    "2. WiFi tap card — tap-to-connect WiFi card so customers never have to ask for the password. COMING SOON, not available to buy yet.\n" +
+    "3. Kuja AI — a done-for-you AI chatbot for real estate agents that qualifies buyers and sellers 24/7 and sends every lead straight to the agent's inbox. Pricing: $300 one-off setup + $150/month, no lock-in contract. More detail is on the Kuja AI page linked in the site nav.\n\n" +
+    "HOW KUJA WORKS: the team personally drops a sample tool at a business's counter, no appointment needed. The owner tries it on their own phone, and if they like it they keep it — no setup, no charging, no app to manage. Kuja is currently doing rounds around Fortitude Valley, West End and New Farm in Brisbane, but is happy to talk to businesses anywhere.\n\n" +
+    "YOUR JOB:\n" +
+    "- Answer questions about these three products helpfully and accurately, in 1-3 short, warm sentences.\n" +
+    "- Recommend the right product for what the visitor describes — e.g. a cafe wanting more Google reviews needs the review tap card; a real estate agency missing after-hours enquiries needs Kuja AI.\n" +
+    "- Be confident and a little enthusiastic, you're representing Kuja and it's fine to make the sale — but never be pushy and never make up facts, pricing, or availability you're not sure of.\n" +
+    "- Do NOT invent a price for the review tap card or WiFi tap card. If asked, say the team will sort out exact pricing for their situation and offer to grab their details.\n" +
+    "- If someone wants to talk further, book a call, get a demo, or is ready to move forward, respond with a short friendly line inviting them to pick a time, and end your message with the exact marker |||BOOK_SLOTS||| on its own line, nothing after it. Do not mention a link, and only do this once per conversation.\n" +
+    "- If someone seems interested but a call doesn't fit (e.g. they just want a quick question answered), ask for their name so the team can follow up instead. Only do one of these (offer slots OR ask for name) once per conversation, not both.";
+
+  function fmtSlot(iso){
+    return new Date(iso).toLocaleString('en-AU', {timeZone:'Australia/Brisbane', weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit'});
+  }
+
+  async function showBookingSlots(){
+    var container = document.createElement('div');
+    container.className = 'ai-msg ai-msg-bot';
+    container.textContent = 'Loading available times…';
+    body.appendChild(container);
+    body.scrollTop = body.scrollHeight;
+
+    var found = [];
+    var checkDate = new Date();
+    for(var i = 1; i <= 6 && found.length < 5; i++){
+      checkDate.setDate(checkDate.getDate() + 1);
+      var dateStr = checkDate.toISOString().split('T')[0];
+      try{
+        var res = await fetch(API_BASE + '/api/calendar/public/availability?api_key=' + CALENDAR_API_KEY + '&date=' + dateStr);
+        var data = await res.json();
+        if(data.slots && data.slots.length){
+          found = found.concat(data.slots.slice(0, 5 - found.length));
+        }
+      }catch(e){}
+    }
+
+    if(!found.length){
+      container.textContent = "I couldn't find any open times right now — try the Get in touch button and we'll sort out a time directly.";
+      return;
+    }
+
+    container.innerHTML = '';
+    container.appendChild(document.createTextNode('Here are some times that work:'));
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:8px';
+    found.forEach(function(iso){
+      var btn = document.createElement('button');
+      btn.className = 'ai-book-btn';
+      btn.style.cssText = 'display:block;width:100%;text-align:left;border:none;cursor:pointer';
+      btn.textContent = fmtSlot(iso);
+      btn.onclick = function(){ selectSlot(iso); };
+      wrap.appendChild(btn);
+    });
+    container.appendChild(wrap);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function selectSlot(iso){
+    selectedSlot = iso;
+    addMsg(fmtSlot(iso), 'user');
+    bookingStage = 'awaiting_name';
+    addMsg("Great choice! What's your name?", 'bot');
+  }
+
+  async function confirmBooking(name, email, phone){
+    try{
+      var res = await fetch(API_BASE + '/api/calendar/public/book', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({api_key: CALENDAR_API_KEY, start_time: selectedSlot, name: name, email: email, phone: phone})
+      });
+      var data = await res.json();
+      if(!res.ok){
+        addMsg(data.error || "Sorry, something went wrong booking that — try again or use the Get in touch button.", 'bot');
+        return;
+      }
+      addMsg("Booked! " + fmtSlot(data.startTime) + " — you'll get a calendar invite if you gave an email. See you then!", 'bot');
+    }catch(e){
+      addMsg("Sorry, something went wrong booking that — try again or use the Get in touch button.", 'bot');
+    }
+    bookingStage = null;
+    selectedSlot = null;
+  }
+
+  function addMsg(text, sender){
+    var el = document.createElement('div');
+    el.className = 'ai-msg ai-msg-' + sender;
+    var bookMarker = text.indexOf('|||BOOK_SLOTS|||');
+    if(sender === 'bot' && bookMarker !== -1){
+      el.textContent = text.slice(0, bookMarker).trim();
+      body.appendChild(el);
+      body.scrollTop = body.scrollHeight;
+      showBookingSlots();
+      return el;
+    }
+    el.textContent = text;
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+    return el;
+  }
+  function showTyping(){
+    var el = document.createElement('div');
+    el.className = 'ai-typing';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+    return el;
+  }
+
+  function setLoading(state){
+    isLoading = state;
+    sendBtn.disabled = state;
+  }
+
+  function togglePanel(){
+    isOpen = !isOpen;
+    panel.classList.toggle('open', isOpen);
+    if(isOpen){
+      if(body.children.length === 0){
+        addMsg("Hey! I'm the Kuja assistant \uD83D\uDC4B Ask me about the review tap card, WiFi tap card, or Kuja AI — or I can help get you set up.", 'bot');
+      }
+      input.focus();
+    }
+  }
+
+  launcher.addEventListener('click', togglePanel);
+  closeBtn.addEventListener('click', togglePanel);
+
+  function stagedSystem(){
+    if(leadStage === 'done') return SYSTEM + "\nLead details already captured for this visitor. Do NOT ask for name, phone or email again — just keep helping.";
+    if(leadStage) return SYSTEM + "\nCurrently collecting contact details via a separate flow. Do NOT ask for name, phone or email yourself right now.";
+    return SYSTEM;
+  }
+
+  function sendMessage(){
+    var text = input.value.trim();
+    if(!text || isLoading) return;
+    input.value = '';
+    addMsg(text, 'user');
+
+    if(bookingStage === 'awaiting_name'){
+      bookingData_name = text;
+      bookingStage = 'awaiting_email';
+      addMsg("And an email or phone number for the confirmation?", 'bot');
+      return;
+    }
+    if(bookingStage === 'awaiting_email'){
+      var isEmail = text.indexOf('@') !== -1;
+      confirmBooking(bookingData_name, isEmail ? text : null, isEmail ? null : text);
+      return;
+    }
+
+    if(leadStage === 'ask_name'){
+      leadData.name = text;
+      leadStage = 'ask_phone';
+      addMsg('Nice to meet you, ' + text + '! Best phone number to reach you on?', 'bot');
+      return;
+    }
+    if(leadStage === 'ask_phone'){
+      leadData.phone = text;
+      leadStage = 'ask_email';
+      addMsg('Great, and your email address?', 'bot');
+      return;
+    }
+    if(leadStage === 'ask_email'){
+      leadData.email = text;
+      leadStage = 'done';
+      addMsg('Thanks ' + leadData.name + '! Someone from the team will reach out soon. Anything else I can help with?', 'bot');
+      var transcript = messages.map(function(m){ return (m.role === 'user' ? 'Visitor: ' : 'Bot: ') + m.content; }).join('\n');
+      fetch(PLATFORM_URL + '/api/leads/webhook', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          api_key: API_KEY,
+          name: leadData.name,
+          phone: leadData.phone,
+          email: leadData.email,
+          transcript: 'Kuja website AI assistant\n' + transcript,
+          source_page: window.location.href
+        })
+      }).catch(function(){});
+      return;
+    }
+
+    setLoading(true);
+    messages.push({role: 'user', content: text});
+    var typing = showTyping();
+
+    fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({messages: messages, system: stagedSystem()})
+    }).then(function(res){
+      if(!res.ok) throw new Error('bad status');
+      return res.json();
+    }).then(function(data){
+      if(data.error) throw new Error(data.error);
+      var reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : "Sorry, I'm not totally sure on that one — hit the Get in touch button and we'll help you out directly!";
+      typing.remove();
+      addMsg(reply, 'bot');
+      messages.push({role: 'assistant', content: reply});
+
+      if(leadStage === null){
+        var r = reply.toLowerCase();
+        if(r.indexOf('your name') !== -1 || r.indexOf('grab your') !== -1 || r.indexOf('get your name') !== -1 || r.indexOf("what's your name") !== -1 || r.indexOf('name?') !== -1){
+          leadStage = 'ask_name';
+        }
+      }
+    }).catch(function(){
+      typing.remove();
+      addMsg("Sorry, something went wrong there. Try the Get in touch button and we'll sort you out.", 'bot');
+      messages.pop();
+    }).finally(function(){
+      setLoading(false);
+      input.focus();
+    });
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', function(e){ if(e.key === 'Enter') sendMessage(); });
+})();
+</script>
+
 </body>
 </html>
