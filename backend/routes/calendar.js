@@ -114,8 +114,10 @@ router.get('/public/availability', async (req, res) => {
   const oauth2 = await getValidToken(client.id);
   if (!oauth2) return res.status(400).json({ error: 'This business hasn\'t connected their calendar yet' });
 
-  const dayStart = new Date(date + 'T' + hours.start + ':00');
-  const dayEnd = new Date(date + 'T' + hours.end + ':00');
+  // Brisbane (Queensland) never observes daylight saving — fixed UTC+10 year-round,
+  // so we can hardcode the offset rather than needing a timezone library.
+  const dayStart = new Date(date + 'T' + hours.start + ':00+10:00');
+  const dayEnd = new Date(date + 'T' + hours.end + ':00+10:00');
 
   const calendar = google.calendar({ version: 'v3', auth: oauth2 });
   const fb = await calendar.freebusy.query({ requestBody: { timeMin: dayStart.toISOString(), timeMax: dayEnd.toISOString(), items: [{ id: 'primary' }] } });
