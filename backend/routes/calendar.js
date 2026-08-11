@@ -102,80 +102,90 @@ async function getValidToken(clientId) {
 // ── Public: widget checks availability + books, keyed by api_key (no login) ──
 
 router.get('/public/availability', async (req, res) => {
-  const { api_key, date } = req.query; // date = 'YYYY-MM-DD'
-  if (!api_key || !date) return res.status(400).json({ error: 'api_key and date required' });
-  const client = db.prepare("SELECT * FROM clients WHERE api_key = ? AND plan = 'active'").get(api_key);
-  if (!client) return res.status(401).json({ error: 'Invalid api_key' });
+  try {
+    const { api_key, date } = req.query; // date = 'YYYY-MM-DD'
+    if (!api_key || !date) return res.status(400).json({ error: 'api_key and date required' });
+    const client = db.prepare("SELECT * FROM clients WHERE api_key = ? AND plan = 'active'").get(api_key);
+    if (!client) return res.status(401).json({ error: 'Invalid api_key' });
 
-  const hours = getHours(client);
-  const day = new Date(date + 'T00:00:00');
-  if (!hours.days.includes(day.getDay())) return res.json({ slots: [] });
+    const hours = getHours(client);
+    const day = new Date(date + 'T00:00:00');
+    if (!hours.days.includes(day.getDay())) return res.json({ slots: [] });
 
-  const oauth2 = await getValidToken(client.id);
-  if (!oauth2) return res.status(400).json({ error: 'This business hasn\'t connected their calendar yet' });
+    const oauth2 = await getValidToken(client.id);
+    if (!oauth2) return res.status(400).json({ error: 'This business hasn\'t connected their calendar yet' });
 
-  // Brisbane (Queensland) never observes daylight saving — fixed UTC+10 year-round,
-  // so we can hardcode the offset rather than needing a timezone library.
-  const dayStart = new Date(date + 'T' + hours.start + ':00+10:00');
-  const dayEnd = new Date(date + 'T' + hours.end + ':00+10:00');
+    // Brisbane (Queensland) never observes daylight saving — fixed UTC+10 year-round,
+    // so we can hardcode the offset rather than needing a timezone library.
+    const dayStart = new Date(date + 'T' + hours.start + ':00+10:00');
+    const dayEnd = new Date(date + 'T' + hours.end + ':00+10:00');
 
-  const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-  const fb = await calendar.freebusy.query({ requestBody: { timeMin: dayStart.toISOString(), timeMax: dayEnd.toISOString(), items: [{ id: 'primary' }] } });
-  const busy = (fb.data.calendars.primary.busy || []).map(b => ({ start: new Date(b.start), end: new Date(b.end) }));
+    const calendar = google.calendar({ version: 'v3', auth: oauth2 });
+    const fb = await calendar.freebusy.query({ requestBody: { timeMin: dayStart.toISOString(), timeMax: dayEnd.toISOString(), items: [{ id: 'primary' }] } });
+    const busy = (fb.data.calendars.primary.busy || []).map(b => ({ start: new Date(b.start), end: new Date(b.end) }));
 
-  const slots = [];
-  let cursor = new Date(dayStart);
-  while (cursor < dayEnd) {
-    const slotEnd = new Date(cursor.getTime() + hours.slotMinutes * 60000);
-    const overlapsBusy = busy.some(b => cursor < b.end && slotEnd > b.start);
-    const isPast = cursor < new Date();
-    if (!overlapsBusy && !isPast) slots.push(cursor.toISOString());
-    cursor = slotEnd;
+    const slots = [];
+    let cursor = new Date(dayStart);
+    while (cursor < dayEnd) {
+      const slotEnd = new Date(cursor.getTime() + hours.slotMinutes * 60000);
+      const overlapsBusy = busy.some(b => cursor < b.end && slotEnd > b.start);
+      const isPast = cursor < new Date();
+      if (!overlapsBusy && !isPast) slots.push(cursor.toISOString());
+      cursor = slotEnd;
+    }
+    res.json({ slots, slotMinutes: hours.slotMinutes });
+  } catch (e) {
+    console.error('❌ /public/availability failed:', e);
+    res.status(500).json({ error: 'Something went wrong checking availability.' });
   }
-  res.json({ slots, slotMinutes: hours.slotMinutes });
 });
 
 router.post('/public/book', async (req, res) => {
-  const { api_key, start_time, name, email, phone } = req.body;
-  if (!api_key || !start_time || !name) return res.status(400).json({ error: 'api_key, start_time and name required' });
-  const client = db.prepare("SELECT * FROM clients WHERE api_key = ? AND plan = 'active'").get(api_key);
-  if (!client) return res.status(401).json({ error: 'Invalid api_key' });
+  try {
+    const { api_key, start_time, name, email, phone } = req.body;
+    if (!api_key || !start_time || !name) return res.status(400).json({ error: 'api_key, start_time and name required' });
+    const client = db.prepare("SELECT * FROM clients WHERE api_key = ? AND plan = 'active'").get(api_key);
+    if (!client) return res.status(401).json({ error: 'Invalid api_key' });
 
-  const oauth2 = await getValidToken(client.id);
-  if (!oauth2) return res.status(400).json({ error: 'This business hasn\'t connected their calendar yet' });
+    const oauth2 = await getValidToken(client.id);
+    if (!oauth2) return res.status(400).json({ error: 'This business hasn\'t connected their calendar yet' });
 
-  const hours = getHours(client);
-  const start = new Date(start_time);
-  const end = new Date(start.getTime() + hours.slotMinutes * 60000);
+    const hours = getHours(client);
+    const start = new Date(start_time);
+    const end = new Date(start.getTime() + hours.slotMinutes * 60000);
 
-  // Re-check the slot is still free right before booking (avoids race conditions)
-  const calendar = google.calendar({ version: 'v3', auth: oauth2 });
-  const fb = await calendar.freebusy.query({ requestBody: { timeMin: start.toISOString(), timeMax: end.toISOString(), items: [{ id: 'primary' }] } });
-  if ((fb.data.calendars.primary.busy || []).length > 0) {
-    return res.status(409).json({ error: 'That time was just booked — please pick another.' });
+    // Re-check the slot is still free right before booking (avoids race conditions)
+    const calendar = google.calendar({ version: 'v3', auth: oauth2 });
+    const fb = await calendar.freebusy.query({ requestBody: { timeMin: start.toISOString(), timeMax: end.toISOString(), items: [{ id: 'primary' }] } });
+    if ((fb.data.calendars.primary.busy || []).length > 0) {
+      return res.status(409).json({ error: 'That time was just booked — please pick another.' });
+    }
+
+    const event = await calendar.events.insert({
+      calendarId: 'primary',
+      sendUpdates: 'all',
+      requestBody: {
+        summary: `${name} — booked via Kuja AI`,
+        description: `Booked automatically via ${client.agency_name}'s AI assistant.\nPhone: ${phone || 'n/a'}\nEmail: ${email || 'n/a'}`,
+        start: { dateTime: start.toISOString() },
+        end: { dateTime: end.toISOString() },
+        attendees: email ? [{ email }] : [],
+      },
+    });
+
+    const id = uuidv4();
+    db.prepare(`
+      INSERT INTO bookings (id, client_id, lead_name, lead_email, lead_phone, start_time, end_time, google_event_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, client.id, name, email||null, phone||null, start.toISOString(), end.toISOString(), event.data.id);
+
+    sendBookingConfirmation({ clientEmail: client.email, agencyName: client.agency_name, name, email, phone, startTime: start }).catch(e => console.error('Booking email failed:', e.message));
+
+    res.json({ success: true, bookingId: id, startTime: start.toISOString() });
+  } catch (e) {
+    console.error('❌ /public/book failed:', e);
+    res.status(500).json({ error: 'Something went wrong creating that booking. Please try again.' });
   }
-
-  const event = await calendar.events.insert({
-    calendarId: 'primary',
-    sendUpdates: 'all',
-    requestBody: {
-      summary: `${name} — booked via Kuja AI`,
-      description: `Booked automatically via ${client.agency_name}'s AI assistant.\nPhone: ${phone || 'n/a'}\nEmail: ${email || 'n/a'}`,
-      start: { dateTime: start.toISOString() },
-      end: { dateTime: end.toISOString() },
-      attendees: email ? [{ email }] : [],
-    },
-  });
-
-  const id = uuidv4();
-  db.prepare(`
-    INSERT INTO bookings (id, client_id, lead_name, lead_email, lead_phone, start_time, end_time, google_event_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, client.id, name, email||null, phone||null, start.toISOString(), end.toISOString(), event.data.id);
-
-  sendBookingConfirmation({ clientEmail: client.email, agencyName: client.agency_name, name, email, phone, startTime: start }).catch(e => console.error('Booking email failed:', e.message));
-
-  res.json({ success: true, bookingId: id, startTime: start.toISOString() });
 });
 
 module.exports = router;
