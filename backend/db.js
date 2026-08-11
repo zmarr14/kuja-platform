@@ -56,9 +56,33 @@ db.exec(`
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES clients(id)
   );
+  CREATE TABLE IF NOT EXISTS calendar_connections (
+    client_id      TEXT PRIMARY KEY,
+    google_email   TEXT,
+    access_token   TEXT,
+    refresh_token  TEXT,
+    token_expiry   INTEGER,
+    connected_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (client_id) REFERENCES clients(id)
+  );
+  CREATE TABLE IF NOT EXISTS bookings (
+    id           TEXT PRIMARY KEY,
+    client_id    TEXT NOT NULL,
+    lead_name    TEXT,
+    lead_email   TEXT,
+    lead_phone   TEXT,
+    start_time   DATETIME NOT NULL,
+    end_time     DATETIME NOT NULL,
+    status       TEXT DEFAULT 'confirmed',
+    google_event_id TEXT,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (client_id) REFERENCES clients(id)
+  );
   CREATE INDEX IF NOT EXISTS idx_leads_client ON leads(client_id);
   CREATE INDEX IF NOT EXISTS idx_leads_date ON leads(created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_listings_client ON listings(client_id);
+  CREATE INDEX IF NOT EXISTS idx_bookings_client ON bookings(client_id);
+  CREATE INDEX IF NOT EXISTS idx_bookings_time ON bookings(start_time);
 `);
 
 // Migrations: SQLite has no "ADD COLUMN IF NOT EXISTS", so we check
@@ -68,6 +92,11 @@ const clientCols = db.prepare("PRAGMA table_info(clients)").all().map(c => c.nam
 if (!clientCols.includes('calendly_url')) {
   db.exec('ALTER TABLE clients ADD COLUMN calendly_url TEXT');
   console.log('✅ Migration: added calendly_url column to clients');
+}
+if (!clientCols.includes('booking_hours')) {
+  // JSON string, e.g. {"days":[1,2,3,4,5],"start":"09:00","end":"17:00","slotMinutes":30}
+  db.exec('ALTER TABLE clients ADD COLUMN booking_hours TEXT');
+  console.log('✅ Migration: added booking_hours column to clients');
 }
 
 const listingCols = db.prepare("PRAGMA table_info(listings)").all().map(c => c.name);
