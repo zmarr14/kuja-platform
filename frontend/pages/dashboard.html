@@ -279,6 +279,17 @@
             </div>
           </div>
           <div class="settings-group">
+            <div class="settings-group-title">Booking</div>
+            <div class="setting-row">
+              <div><div class="setting-label">Google Calendar</div><div class="setting-sub" id="calStatus">Checking…</div></div>
+              <button class="btn-primary-sm" id="calConnectBtn" onclick="connectCalendar()" style="display:none">Connect</button>
+              <button class="lf-cancel" id="calDisconnectBtn" onclick="disconnectCalendar()" style="display:none;padding:0.5rem 1rem;border-radius:8px">Disconnect</button>
+            </div>
+            <div class="setting-row" id="calHoursRow" style="display:none">
+              <div><div class="setting-label">Booking hours</div><div class="setting-sub">Mon–Fri, 9:00 AM – 5:00 PM · 30 min slots</div></div>
+            </div>
+          </div>
+          <div class="settings-group">
             <div class="settings-group-title">Account</div>
             <div class="setting-row"><div><div class="setting-label">Agency Name</div><div class="setting-sub" id="settingAgency">—</div></div></div>
             <div class="setting-row"><div><div class="setting-label">Login Email</div><div class="setting-sub" id="settingEmail">—</div></div></div>
@@ -415,6 +426,45 @@
     document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
     if(el)el.classList.add('active');
     if(view==='listings')loadListings();
+    if(view==='settings')loadCalendarStatus();
+  }
+
+  async function loadCalendarStatus(){
+    try{
+      const res=await fetch(API_BASE+'/api/calendar/status',{headers:authH()});
+      const d=await res.json();
+      const statusEl=document.getElementById('calStatus');
+      const connectBtn=document.getElementById('calConnectBtn');
+      const disconnectBtn=document.getElementById('calDisconnectBtn');
+      const hoursRow=document.getElementById('calHoursRow');
+      if(d.connected){
+        statusEl.textContent='Connected — '+d.googleEmail;
+        connectBtn.style.display='none';
+        disconnectBtn.style.display='';
+        hoursRow.style.display='';
+      }else{
+        statusEl.textContent='Not connected — leads can\'t book appointments yet';
+        connectBtn.style.display='';
+        disconnectBtn.style.display='none';
+        hoursRow.style.display='none';
+      }
+    }catch(e){
+      document.getElementById('calStatus').textContent='Could not check status';
+    }
+  }
+
+  async function connectCalendar(){
+    try{
+      const res=await fetch(API_BASE+'/api/calendar/google/connect',{headers:authH()});
+      const d=await res.json();
+      if(d.authUrl) window.open(d.authUrl,'_blank');
+    }catch(e){alert('Could not start connection — please try again.');}
+  }
+
+  async function disconnectCalendar(){
+    if(!confirm('Disconnect Google Calendar? Your AI assistant won\'t be able to book appointments until you reconnect.'))return;
+    await fetch(API_BASE+'/api/calendar/disconnect',{method:'DELETE',headers:authH()}).catch(()=>{});
+    loadCalendarStatus();
   }
 
   async function loadStats(){
