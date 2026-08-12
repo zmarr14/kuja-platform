@@ -90,4 +90,84 @@ async function sendLeadNotification({ clientEmail, agencyName, lead }) {
   });
 }
 
-module.exports = { sendLeadNotification };
+async function sendBookingConfirmation({ clientEmail, agencyName, name, email, phone, startTime }) {
+  const timeStr = new Date(startTime).toLocaleString('en-AU', { timeZone: 'Australia/Brisbane', dateStyle: 'full', timeStyle: 'short' });
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#F3EFE6;padding:40px 20px">
+
+      <div style="background:#131218;padding:26px 32px;border-radius:14px 14px 0 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding-right:12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="36" height="36" style="background:#F3EFE6;border-radius:8px;">
+                <tr><td align="center" style="font-family:Arial,sans-serif;font-weight:900;font-size:18px;color:#131218;">
+                  K<span style="color:#FF5A1F;">·</span>
+                </td></tr>
+              </table>
+            </td>
+            <td>
+              <h1 style="margin:0;color:#F3EFE6;font-size:19px;font-weight:700;letter-spacing:-0.01em;">New Booking Confirmed</h1>
+              <p style="margin:5px 0 0;color:#FF5A1F;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Courier New',monospace;">${agencyName}</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background:#ffffff;padding:28px 32px;border:1px solid rgba(19,18,24,0.08);border-top:none;border-radius:0 0 14px 14px;">
+
+        <p style="margin:0 0 14px"><span style="color:#8c8578;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;font-family:'Courier New',monospace;">Booked with</span><br><strong style="font-size:17px;color:#131218;font-family:Arial,sans-serif;">${name}</strong></p>
+        ${phone ? `<p style="margin:0 0 14px"><span style="color:#8c8578;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;font-family:'Courier New',monospace;">Phone</span><br><a href="tel:${phone}" style="color:#FF5A1F;font-size:15px;text-decoration:none;font-family:Arial,sans-serif;">${phone}</a></p>` : ''}
+        ${email ? `<p style="margin:0 0 14px"><span style="color:#8c8578;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;font-family:'Courier New',monospace;">Email</span><br><a href="mailto:${email}" style="color:#FF5A1F;font-size:15px;text-decoration:none;font-family:Arial,sans-serif;">${email}</a></p>` : ''}
+
+        <div style="background:#F3EFE6;padding:16px 18px;border-left:3px solid #FF5A1F;border-radius:0 8px 8px 0;margin-top:18px;">
+          <span style="color:#8c8578;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;font-family:'Courier New',monospace;">When</span><br>
+          <strong style="font-size:16px;color:#131218;font-family:Arial,sans-serif;">${timeStr}</strong>
+        </div>
+
+        <p style="margin-top:22px;font-size:13px;color:#6b6560;font-family:Arial,sans-serif;">This has already been added to your Google Calendar automatically.</p>
+      </div>
+
+      <p style="text-align:center;margin-top:18px;font-size:11px;color:#a39d90;font-family:Arial,sans-serif;letter-spacing:0.3px;">Powered by Kuja · Brisbane, Australia</p>
+    </div>`;
+
+  const payload = JSON.stringify({
+    from: 'Kuja AI <info@kujaai.com>',
+    to: [clientEmail],
+    subject: `New Booking: ${name} — ${timeStr}`,
+    html
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.SMTP_PASS}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`✅ Booking confirmation sent to ${clientEmail}`);
+          resolve(data);
+        } else {
+          console.error(`❌ Resend API error ${res.statusCode}:`, data);
+          reject(new Error(`Resend API error: ${res.statusCode} ${data}`));
+        }
+      });
+    });
+    req.on('error', (e) => {
+      console.error('❌ Email request failed:', e.message);
+      reject(e);
+    });
+    req.write(payload);
+    req.end();
+  });
+}
+
+module.exports = { sendLeadNotification, sendBookingConfirmation };
