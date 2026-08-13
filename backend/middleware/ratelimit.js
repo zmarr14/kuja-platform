@@ -1,10 +1,16 @@
 // Simple in-memory rate limiter, keyed by whatever the caller chooses (usually api_key).
+// No external dependency — a Map with fixed time windows is plenty at this scale.
+// Note: resets on server restart/redeploy. That's an acceptable tradeoff here — this
+// exists to stop obvious abuse (someone scripting requests against a leaked api_key),
+// not to be a hard security boundary. If Kuja ever runs multiple server instances behind
+// a load balancer, this would need to move to a shared store (e.g. Redis) instead.
+
 const buckets = new Map();
 
 function rateLimit({ windowMs, max, keyFn, message }) {
   return function (req, res, next) {
     const key = keyFn(req);
-    if (!key) return next();
+    if (!key) return next(); // nothing to key on — let normal validation reject the request instead
 
     const now = Date.now();
     let bucket = buckets.get(key);
@@ -23,6 +29,7 @@ function rateLimit({ windowMs, max, keyFn, message }) {
   };
 }
 
+// Periodic cleanup so the Map doesn't grow forever on a long-running server.
 const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, bucket] of buckets) {
