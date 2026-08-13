@@ -156,11 +156,12 @@
     .lf-section-title{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:0.85rem}
     .lf-label-optional{font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;font-family:'Inter',sans-serif;font-size:0.65rem}
     .address-search-wrap{position:relative}
-    .address-search-icon{position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px;pointer-events:none;line-height:1}
-    .address-search-input{width:100%;background:var(--surface);border:1px solid var(--border-subtle);border-radius:9px;padding:0.7rem 0.9rem 0.7rem 2.35rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s}
-    .address-search-input:focus{border-color:var(--gold)}
+    .address-search-icon{position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;line-height:1;opacity:0.7;width:1rem;text-align:center}
+    .address-search-input{width:100%;background:var(--surface);border:1px solid var(--border-subtle);border-radius:9px;padding:0.7rem 0.9rem 0.7rem 2.25rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+    .address-search-input:focus{border-color:rgba(255,90,31,0.45);box-shadow:0 0 0 3px rgba(255,90,31,0.1)}
     .address-search-input::placeholder{color:var(--text-muted)}
-    .address-suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;background:var(--surface);border:1px solid var(--border-subtle);border-radius:10px;box-shadow:var(--shadow);max-height:220px;overflow-y:auto;display:none}
+    .lf-field.address-field.is-open{padding-bottom:min(204px,36vh)}
+    .address-suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--surface);border:1px solid var(--border-subtle);border-radius:10px;box-shadow:0 8px 28px rgba(19,18,24,0.12);max-height:min(200px,35vh);overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
     .address-suggestions.open{display:block}
     .address-suggestion{padding:0.65rem 0.85rem;font-size:0.84rem;line-height:1.4;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border-subtle)}
     .address-suggestion:last-child{border-bottom:none}
@@ -170,23 +171,31 @@
     .poa-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
     .poa-row label{font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:500;color:var(--text-mid);text-transform:none;letter-spacing:0;cursor:pointer;margin:0}
     .lf-field input:disabled,.address-search-input:disabled{opacity:0.55;cursor:not-allowed;background:var(--cream-mid)}
-    .photo-area{display:flex;flex-wrap:wrap;gap:0.65rem;align-items:flex-start}
-    .photo-preview{position:relative;width:88px;height:88px;border-radius:10px;overflow:hidden;border:1px solid var(--border-subtle);background:var(--cream-mid);flex-shrink:0}
+    .lf-row3 .lf-field input,.lf-row3 .lf-field select{min-height:44px;padding:0.65rem 0.9rem;font-size:0.88rem;line-height:1.3}
+    .lf-row3 .lf-field select{padding-right:2.2rem}
+    .lf-row3 .lf-field input[type=number]{-moz-appearance:textfield}
+    .lf-row3 .lf-field input[type=number]::-webkit-outer-spin-button,.lf-row3 .lf-field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    .photo-block{display:flex;flex-direction:column;gap:0.55rem}
+    .photo-row{display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap}
+    .photo-preview{position:relative;width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid var(--border-subtle);background:var(--cream-mid);flex-shrink:0}
     .photo-preview img{width:100%;height:100%;object-fit:cover;display:block}
     .photo-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(19,18,24,0.72);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
-    .photo-add-btn{display:inline-flex;align-items:center;justify-content:center;gap:0.35rem;min-width:88px;min-height:88px;padding:0.65rem;border:1.5px dashed var(--border);border-radius:10px;background:transparent;color:var(--text-mid);font-family:'Inter',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 0.15s}
-    .photo-add-btn:hover{border-color:var(--gold);color:var(--text);background:rgba(255,90,31,0.04)}
-    .photo-url-row{display:none;width:100%;margin-top:0.15rem}
+    .photo-link-btn{display:inline-flex;align-items:center;justify-content:center;padding:0.55rem 0.9rem;border:1.5px dashed var(--border);border-radius:9px;background:transparent;color:var(--text-mid);font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.15s;min-height:44px}
+    .photo-link-btn:hover{border-color:var(--gold);color:var(--text);background:rgba(255,90,31,0.04)}
+    .photo-url-row{display:none;width:100%}
     .photo-url-row.open{display:block}
     .photo-url-row input{width:100%;background:var(--surface);border:1px solid var(--border-subtle);border-radius:9px;padding:0.65rem 0.85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.82rem;outline:none}
-    .photo-url-row input:focus{border-color:var(--gold)}
-    .photo-hint{font-size:0.72rem;color:var(--text-muted);margin-top:0.35rem}
+    .photo-url-row input:focus{border-color:rgba(255,90,31,0.45);box-shadow:0 0 0 3px rgba(255,90,31,0.1)}
+    .photo-hint{font-size:0.72rem;color:var(--text-muted);line-height:1.45;margin:0}
     .lf-meta{display:block;text-align:right;font-size:0.72rem;color:var(--text-muted);margin-top:0.35rem}
-    .listing-modal .modal{max-width:580px;display:flex;flex-direction:column;overflow:hidden;max-height:min(90vh, calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)))}
-    .listing-modal .modal-body{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
-    .listing-modal .lf-actions{position:sticky;bottom:0;background:var(--surface);padding-top:0.85rem;margin-top:0.5rem;border-top:1px solid var(--border-subtle)}
-    .listing-modal .lf-actions .lf-save{flex:1.4}
-    .listing-modal .lf-actions .lf-cancel{flex:1;background:var(--surface)}
+    .listing-modal .modal{max-width:580px;display:flex;flex-direction:column;overflow:hidden;max-height:min(90dvh, calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));padding:0}
+    .listing-modal .modal-header{flex-shrink:0}
+    .listing-modal-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:1.25rem 1.5rem 1.25rem}
+    .listing-modal-footer{flex-shrink:0;display:flex;gap:0.75rem;padding:0.85rem 1.5rem calc(0.85rem + env(safe-area-inset-bottom, 0px));background:var(--surface);border-top:1px solid var(--border-subtle);box-shadow:0 -6px 20px rgba(19,18,24,0.06)}
+    .listing-modal-footer .lf-save{flex:1.4;padding:0.75rem;border-radius:9px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;background:var(--ink);color:var(--cream)}
+    .listing-modal-footer .lf-save:hover{background:var(--gold);color:#fff}
+    .listing-modal-footer .lf-cancel{flex:1;padding:0.75rem;border-radius:9px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;background:var(--surface);color:var(--text-mid);border:1px solid var(--border-subtle) !important}
+    .listing-modal-footer .lf-cancel:hover{background:var(--cream-mid)}
     .detail-row{display:flex;gap:0.75rem;margin-bottom:0.85rem;align-items:baseline}
     .detail-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);width:65px;flex-shrink:0;padding-top:2px}
     .detail-value{font-size:0.88rem;color:var(--text)}
@@ -237,6 +246,9 @@
       .listing-card{flex-direction:column}
       .listing-actions{width:100%}
       .listing-actions button{flex:1;padding:0.55rem 0.75rem;font-size:0.8rem;min-height:44px}
+      .listing-modal-scroll,.listing-modal-footer{padding-left:1rem;padding-right:1rem}
+      .listing-modal-footer{flex-direction:column-reverse}
+      .listing-modal-footer button{width:100%;min-height:44px}
       .lf-row,.lf-row3{grid-template-columns:1fr}
       .modal-header,.modal-body{padding-left:1rem;padding-right:1rem}
       .transcript-box{max-height:min(40vh, 320px)}
@@ -244,9 +256,6 @@
       .detail-label{width:auto;padding-top:0}
       .setting-row{flex-wrap:wrap;gap:0.75rem}
       .setting-row .btn-primary-sm,.setting-row .lf-cancel{width:100%;min-height:44px}
-      .listing-modal .lf-actions{flex-direction:column-reverse}
-      .listing-modal .lf-actions button{width:100%;min-height:44px}
-      .photo-area{gap:0.5rem}
     }
   </style>
 </head>
@@ -446,21 +455,21 @@
 
 <!-- Listing Modal -->
 <div class="modal-overlay listing-modal" id="listingModalOverlay" onclick="closeListingModal(event)">
-  <div class="modal listing-modal-panel">
+  <div class="modal listing-modal-panel" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div class="modal-title" id="listingModalTitle">Add Listing</div>
       <div class="modal-close" onclick="closeListingModal()">✕</div>
     </div>
-    <div class="modal-body">
+    <div class="listing-modal-scroll" id="listingModalScroll">
       <input type="hidden" id="l_id">
       <input type="hidden" id="l_image">
 
       <div class="lf-section">
         <div class="lf-section-title">Property details</div>
-        <div class="lf-field">
+        <div class="lf-field address-field" id="addressField">
           <label for="l_address">Address</label>
           <div class="address-search-wrap">
-            <span class="address-search-icon" aria-hidden="true">🔍</span>
+            <span class="address-search-icon" aria-hidden="true">⌕</span>
             <input class="address-search-input" type="text" id="l_address" placeholder="Start typing an address..." autocomplete="off" aria-autocomplete="list" aria-controls="addressSuggestions">
             <div class="address-suggestions" id="addressSuggestions" role="listbox"></div>
           </div>
@@ -482,11 +491,11 @@
         <div class="lf-row3">
           <div class="lf-field">
             <label for="l_bedrooms">Bedrooms</label>
-            <input type="number" id="l_bedrooms" placeholder="3" min="0" inputmode="numeric">
+            <input type="number" id="l_bedrooms" placeholder="3" min="0" max="99" inputmode="numeric">
           </div>
           <div class="lf-field">
             <label for="l_bathrooms">Bathrooms</label>
-            <input type="number" id="l_bathrooms" placeholder="2" min="0" inputmode="numeric">
+            <input type="number" id="l_bathrooms" placeholder="2" min="0" max="99" inputmode="numeric">
           </div>
           <div class="lf-field">
             <label for="l_type">Property type</label>
@@ -508,17 +517,19 @@
         <div class="lf-section-title">Media</div>
         <div class="lf-field" style="margin-bottom:0">
           <label>Property photos</label>
-          <div class="photo-area">
-            <div class="photo-preview" id="photoPreview" style="display:none">
-              <img id="photoPreviewImg" src="" alt="Property preview">
-              <button type="button" class="photo-remove" onclick="removeListingPhoto()" aria-label="Remove photo">✕</button>
+          <div class="photo-block">
+            <div class="photo-row">
+              <div class="photo-preview" id="photoPreview" style="display:none">
+                <img id="photoPreviewImg" src="" alt="Property preview">
+                <button type="button" class="photo-remove" onclick="removeListingPhoto()" aria-label="Remove photo">✕</button>
+              </div>
+              <button type="button" class="photo-link-btn" id="photoLinkBtn" onclick="showPhotoUrlInput()">Paste photo link</button>
             </div>
-            <button type="button" class="photo-add-btn" id="photoAddBtn" onclick="showPhotoUrlInput()">+ Add photo</button>
+            <div class="photo-url-row" id="photoUrlRow">
+              <input type="url" id="l_image_url" placeholder="https://..." aria-label="Photo link URL">
+            </div>
+            <p class="photo-hint">Paste a link to a photo on your website or CRM. File upload is not available yet.</p>
           </div>
-          <div class="photo-url-row" id="photoUrlRow">
-            <input type="url" id="l_image_url" placeholder="Paste a photo link (https://...)" oninput="handlePhotoUrlInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();applyPhotoUrl()}">
-          </div>
-          <div class="photo-hint">Paste a link to a property photo. Image hosting on your website or CRM works best.</div>
         </div>
       </div>
 
@@ -536,10 +547,10 @@
       </div>
 
       <div class="lf-error" id="listingErr"></div>
-      <div class="lf-actions">
-        <button type="button" class="lf-save" id="listingSaveBtn" onclick="saveListing()">Save Listing</button>
-        <button type="button" class="lf-cancel" onclick="closeListingModal()">Cancel</button>
-      </div>
+    </div>
+    <div class="listing-modal-footer">
+      <button type="button" class="lf-save" id="listingSaveBtn" onclick="saveListing()">Save Listing</button>
+      <button type="button" class="lf-cancel" onclick="closeListingModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -836,11 +847,16 @@
     document.getElementById('l_desc_count').textContent=len+' character'+(len===1?'':'s');
   }
 
+  function setAddressDropdownOpen(open){
+    document.getElementById('addressField').classList.toggle('is-open',!!open);
+  }
+
   function hideAddressSuggestions(){
     const box=document.getElementById('addressSuggestions');
     box.classList.remove('open');
     box.innerHTML='';
     addressSuggestionsData=[];
+    setAddressDropdownOpen(false);
   }
 
   function applyAddressResult(item){
@@ -857,24 +873,24 @@
       const res=await fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=au&limit=5&q='+encodeURIComponent(query.trim()),{
         headers:{'Accept':'application/json'}
       });
-      if(!res.ok) return;
+      if(!res.ok){ hideAddressSuggestions(); return; }
       const results=await res.json();
       addressSuggestionsData=results||[];
       const box=document.getElementById('addressSuggestions');
       if(!addressSuggestionsData.length){
-        box.innerHTML='<div class="address-suggestion" style="cursor:default;color:var(--text-muted)">No matches — you can enter the address manually.</div>';
-        box.classList.add('open');
+        hideAddressSuggestions();
         return;
       }
       box.innerHTML=addressSuggestionsData.map((item,i)=>{
         const a=item.address||{};
         const suburb=a.suburb||a.city||a.town||'';
-        return '<div class="address-suggestion" role="option" data-idx="'+i+'" onclick="applyAddressResult(addressSuggestionsData['+i+'])">'
+        return '<div class="address-suggestion" role="option" data-idx="'+i+'" onmousedown="event.preventDefault();applyAddressResult(addressSuggestionsData['+i+'])">'
           +item.display_name.split(',')[0]
           +(suburb?'<span class="address-suggestion-sub">'+suburb+(a.state?' · '+a.state:'')+'</span>':'')
           +'</div>';
       }).join('');
       box.classList.add('open');
+      setAddressDropdownOpen(true);
     }catch(e){ hideAddressSuggestions(); }
   }
 
@@ -885,17 +901,22 @@
       addressSearchTimer=setTimeout(function(){ searchAddresses(addressInput.value); }, 320);
     });
     addressInput.addEventListener('blur',function(){
-      setTimeout(hideAddressSuggestions, 180);
+      setTimeout(hideAddressSuggestions, 150);
+    });
+    document.getElementById('listingModalScroll').addEventListener('mousedown',function(e){
+      if(!e.target.closest('.address-search-wrap')) hideAddressSuggestions();
     });
     document.getElementById('l_price').addEventListener('blur',function(){
       if(!document.getElementById('l_poa').checked && this.value.trim()){
         this.value=formatPriceValue(this.value);
       }
     });
-    document.getElementById('l_image_url').addEventListener('keydown',function(e){
+    const photoUrlInput=document.getElementById('l_image_url');
+    photoUrlInput.addEventListener('input',handlePhotoUrlInput);
+    photoUrlInput.addEventListener('keydown',function(e){
       if(e.key==='Enter'){ e.preventDefault(); applyPhotoUrl(); }
     });
-    document.getElementById('l_image_url').addEventListener('blur',function(){
+    photoUrlInput.addEventListener('blur',function(){
       if(this.value.trim()) applyPhotoUrl();
     });
   }
@@ -948,7 +969,11 @@
 
   function showPhotoUrlInput(){
     document.getElementById('photoUrlRow').classList.add('open');
-    document.getElementById('l_image_url').focus();
+    const input=document.getElementById('l_image_url');
+    input.focus();
+    if(!input.value && document.getElementById('l_image').value){
+      input.value=document.getElementById('l_image').value;
+    }
   }
 
   function handlePhotoUrlInput(){
@@ -965,19 +990,21 @@
   function updatePhotoUI(){
     const url=document.getElementById('l_image').value.trim();
     const preview=document.getElementById('photoPreview');
-    const addBtn=document.getElementById('photoAddBtn');
+    const linkBtn=document.getElementById('photoLinkBtn');
     const img=document.getElementById('photoPreviewImg');
     if(!url){
       preview.style.display='none';
-      addBtn.style.display='';
+      linkBtn.style.display='';
       img.removeAttribute('src');
       document.getElementById('l_image_url').value='';
       document.getElementById('photoUrlRow').classList.remove('open');
       return;
     }
-    img.onload=function(){ preview.style.display=''; addBtn.style.display='none'; };
-    img.onerror=function(){ preview.style.display='none'; addBtn.style.display=''; };
+    img.onload=function(){ preview.style.display=''; linkBtn.textContent='Change photo link'; };
+    img.onerror=function(){ preview.style.display='none'; linkBtn.textContent='Paste photo link'; };
     img.src=url;
+    document.getElementById('l_image_url').value=url;
+    linkBtn.textContent='Change photo link';
   }
 
   function removeListingPhoto(){
@@ -1031,6 +1058,7 @@
     resetListingForm();
     document.getElementById('listingSaveBtn').textContent='Save Listing';
     document.getElementById('listingModalOverlay').classList.add('open');
+    document.getElementById('listingModalScroll').scrollTop=0;
     setTimeout(function(){ document.getElementById('l_address').focus(); }, 100);
   }
 
@@ -1044,6 +1072,7 @@
     document.getElementById('listingErr').classList.remove('show');
     document.getElementById('listingSaveBtn').textContent='Save Changes';
     document.getElementById('listingModalOverlay').classList.add('open');
+    document.getElementById('listingModalScroll').scrollTop=0;
   }
 
   async function saveListing(){
@@ -1090,6 +1119,7 @@
     if(e&&e.target!==document.getElementById('listingModalOverlay'))return;
     document.getElementById('listingModalOverlay').classList.remove('open');
     hideAddressSuggestions();
+    document.getElementById('listingModalScroll').scrollTop=0;
   }
 
   initListingForm();
