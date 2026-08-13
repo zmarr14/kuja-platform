@@ -4,7 +4,7 @@ const { google } = require('googleapis');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
 const { clientAuth } = require('../middleware/auth');
-const { rateLimit } = require('../middleware/rateLimit');
+const { rateLimit } = require('./ratelimit');
 const { sendBookingConfirmation } = require('../email');
 
 const REDIRECT_URI = (process.env.PLATFORM_URL || 'https://platform.kujaai.com') + '/api/calendar/google/callback';
