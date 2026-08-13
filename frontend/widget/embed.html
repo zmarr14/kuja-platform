@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Kuja AI Widget — Embed Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="widget.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f2eb;
+      color: #131218;
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem 1.25rem 6rem;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.35rem;
+      margin-bottom: 0.5rem;
+    }
+    p { font-size: 0.9rem; color: #6b6560; max-width: 36rem; line-height: 1.6; }
+  </style>
+  <script>
+    window.KUJA_PLATFORM_URL = window.location.origin;
+    window.KUJA_API_KEY = 'kuja_7828916b91d242599da5efe7692840fa';
+    window.KUJA_WORKER_URL = 'https://billowing-water-5807.joicvmarr4.workers.dev';
+  </script>
+</head>
+<body>
+  <h1>Kuja AI chat widget</h1>
+  <p>Demo page for the embeddable assistant. Open the launcher in the corner to test mobile height and booking on a phone-sized viewport.</p>
+
+  <button class="ai-launcher" id="aiLauncher" aria-label="Chat with the Kuja assistant">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 12C4 7.58 7.58 4 12 4s8 3.58 8 8-3.58 8-8 8c-1.14 0-2.22-.24-3.2-.68L4 20l1.02-4.06A7.94 7.94 0 0 1 4 12Z" stroke="#F3EFE6" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <span class="ai-launcher-dot"></span>
+  </button>
+
+  <div class="ai-panel" id="aiPanel">
+    <div class="ai-panel-header">
+      <div class="ai-avatar">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5L14.6 9.4L21 10.1L16.3 14.4L17.6 20.7L12 17.5L6.4 20.7L7.7 14.4L3 10.1L9.4 9.4L12 3.5Z" fill="#131218"/></svg>
+      </div>
+      <div class="ai-panel-title">
+        <div class="ai-panel-name">Kuja Assistant</div>
+        <div class="ai-panel-status">Online now</div>
+      </div>
+      <button class="ai-panel-close" id="aiClose" aria-label="Close chat">✕</button>
+    </div>
+    <div class="ai-body" id="aiBody"></div>
+    <div class="ai-input-row">
+      <input class="ai-input" id="aiInput" type="text" placeholder="Ask a question..." autocomplete="off">
+      <button class="ai-send" id="aiSend" aria-label="Send message">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 12L20 4L14 20L11 13L4 12Z" stroke="#F3EFE6" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="widget.js"></script>
+</body>
+</html>
