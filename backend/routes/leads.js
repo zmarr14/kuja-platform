@@ -3,7 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
 const { clientAuth, adminAuth } = require('../middleware/auth');
-const { rateLimit } = require('./ratelimit');
+const { rateLimit } = require('../middleware/rateLimit');
 const { sendLeadNotification } = require('../email');
 
 // ── Lead scoring ──
