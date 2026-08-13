@@ -4,6 +4,7 @@ const { google } = require('googleapis');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
 const { clientAuth } = require('../middleware/auth');
+const { rateLimit } = require('../middleware/rateLimit');
 const { sendBookingConfirmation } = require('../email');
 
 const REDIRECT_URI = (process.env.PLATFORM_URL || 'https://platform.kujaai.com') + '/api/calendar/google/callback';
@@ -101,7 +102,14 @@ async function getValidToken(clientId) {
 
 // ── Public: widget checks availability + books, keyed by api_key (no login) ──
 
-router.get('/public/availability', async (req, res) => {
+const availabilityLimit = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 60, // read-only, but still worth capping — legitimate use checks a handful of days per conversation
+  keyFn: (req) => req.query?.api_key,
+  message: 'Too many availability checks — please try again shortly.',
+});
+
+router.get('/public/availability', availabilityLimit, async (req, res) => {
   try {
     const { api_key, date } = req.query; // date = 'YYYY-MM-DD'
     if (!api_key || !date) return res.status(400).json({ error: 'api_key and date required' });
@@ -140,7 +148,14 @@ router.get('/public/availability', async (req, res) => {
   }
 });
 
-router.post('/public/book', async (req, res) => {
+const bookingLimit = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10, // real bookings are rare events — this comfortably covers legitimate use while blocking spam floods
+  keyFn: (req) => req.body?.api_key,
+  message: 'Too many booking attempts — please try again shortly, or use the Get in touch button.',
+});
+
+router.post('/public/book', bookingLimit, async (req, res) => {
   try {
     const { api_key, start_time, name, email, phone } = req.body;
     if (!api_key || !start_time || !name) return res.status(400).json({ error: 'api_key, start_time and name required' });
