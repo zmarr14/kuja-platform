@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
 const { clientAuth, adminAuth } = require('../middleware/auth');
+const { rateLimit } = require('../middleware/rateLimit');
 const { sendLeadNotification } = require('../email');
 
 // ── Lead scoring ──
@@ -29,7 +30,14 @@ function withScore(lead) {
 }
 
 // Chatbot posts lead here (replaces Formspree)
-router.post('/webhook', async (req, res) => {
+const leadWebhookLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,                  // way above legitimate traffic for a small business, catches spam floods
+  keyFn: (req) => req.body?.api_key,
+  message: 'Too many leads submitted — please try again shortly.',
+});
+
+router.post('/webhook', leadWebhookLimit, async (req, res) => {
   const { api_key, name, phone, email, transcript, source_page } = req.body;
   if (!api_key) return res.status(400).json({ error: 'api_key required' });
   const client = db.prepare("SELECT * FROM clients WHERE api_key = ? AND plan = 'active'").get(api_key);
