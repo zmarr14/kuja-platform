@@ -364,10 +364,10 @@
     messages.push({role: 'user', content: text});
     var typing = showTyping();
 
-    fetch(WORKER_URL, {
+    fetch(PLATFORM_URL + '/api/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({messages: messages, system: stagedSystem()})
+      body: JSON.stringify({api_key: CALENDAR_API_KEY, messages: messages, system: stagedSystem()})
     }).then(function(res){
       if(!res.ok) throw new Error('bad status');
       return res.json();
