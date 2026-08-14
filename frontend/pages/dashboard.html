@@ -124,6 +124,11 @@
     .lead-contacts{display:flex;gap:1rem;flex-wrap:wrap}
     .lead-contact{font-size:0.78rem;color:var(--text-mid);display:flex;align-items:center;gap:0.3rem}
     .lead-preview{font-size:0.78rem;color:var(--text-muted);margin-top:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:500px}
+    .lead-conversation{margin-top:0.3rem;max-width:500px}
+    .lead-conversation .conversation-text{font-size:0.78rem;color:var(--text-muted);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .lead-conversation .conversation-text.is-transcript{white-space:pre-wrap;overflow:visible;text-overflow:unset;display:block;-webkit-line-clamp:unset;-webkit-box-orient:unset}
+    .conversation-toggle{background:none;border:none;padding:0;margin-top:0.35rem;font-family:'Inter',sans-serif;font-size:0.72rem;font-weight:500;color:var(--gold);cursor:pointer;text-align:left}
+    .conversation-toggle:hover{text-decoration:underline}
     .lead-meta{text-align:right;flex-shrink:0}
     .lead-time{font-size:0.72rem;color:var(--text-muted)}
     .unread-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);margin-left:5px;vertical-align:middle}
@@ -258,6 +263,9 @@
       .lead-card{flex-wrap:wrap;gap:0.75rem;padding:1rem}
       .lead-meta{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between}
       .lead-preview{max-width:none;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+      .lead-conversation{max-width:none}
+      .lead-conversation .conversation-text{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+      .lead-conversation .conversation-text.is-transcript{display:block;-webkit-line-clamp:unset;-webkit-box-orient:unset;overflow:visible;white-space:pre-wrap}
       .listing-card{flex-direction:column}
       .listing-actions{width:100%}
       .listing-actions button{flex:1;padding:0.55rem 0.75rem;font-size:0.8rem;min-height:44px}
@@ -899,6 +907,41 @@
   function handleSearch(){searchQuery=document.getElementById('searchInput').value;applyFilters();}
   function setFilter(filter,el){currentFilter=filter;document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');applyFilters();}
 
+  function escapeHtml(s){
+    if(!s)return'';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderLeadConversation(lead,i){
+    const hasSummary=!!lead.summary;
+    const initialText=hasSummary?lead.summary:(lead.transcript||'');
+    if(!initialText)return'';
+    const modeClass=hasSummary?'':' is-transcript';
+    return '<div class="lead-conversation">'
+      +'<div class="conversation-text'+modeClass+'">'+escapeHtml(initialText)+'</div>'
+      +(hasSummary?'<button type="button" class="conversation-toggle" onclick="toggleLeadConversation(event,'+i+')">View full conversation</button>':'')
+      +'</div>';
+  }
+
+  function toggleLeadConversation(e,index){
+    e.stopPropagation();
+    const lead=filteredLeads[index];
+    if(!lead||!lead.summary)return;
+    const wrap=e.target.closest('.lead-conversation');
+    const textEl=wrap.querySelector('.conversation-text');
+    const btn=wrap.querySelector('.conversation-toggle');
+    const showingSummary=!textEl.classList.contains('is-transcript');
+    if(showingSummary){
+      textEl.textContent=lead.transcript||'';
+      textEl.classList.add('is-transcript');
+      btn.textContent='Show summary';
+    }else{
+      textEl.textContent=lead.summary;
+      textEl.classList.remove('is-transcript');
+      btn.textContent='View full conversation';
+    }
+  }
+
   function renderLeads(leads){
     const list=document.getElementById('leadsList');
     if(!leads||!leads.length){
@@ -909,14 +952,14 @@
     list.innerHTML=leads.map((lead,i)=>{
       const initials=(lead.name||lead.email||'?').charAt(0).toUpperCase();
       const unread=!lead.read_at;
-      const preview=getPreview(lead.transcript);
       const badge=lead.score_label==='hot'?'<span class="score-badge hot">🔥 Hot</span>':lead.score_label==='warm'?'<span class="score-badge warm">Warm</span>':'';
+      const conversation=renderLeadConversation(lead,i);
       return '<div class="lead-card '+(unread?'unread':'')+'" onclick="openLead('+i+')">'
         +'<div class="lead-avatar">'+initials+'</div>'
         +'<div class="lead-body">'
         +'<div class="lead-name">'+( lead.name||lead.email||'Unknown Lead')+(unread?'<span class="unread-dot"></span>':'')+badge+'</div>'
         +'<div class="lead-contacts">'+(lead.phone?'<span class="lead-contact">📞 '+lead.phone+'</span>':'')+(lead.email?'<span class="lead-contact">✉ '+lead.email+'</span>':'')+'</div>'
-        +(preview?'<div class="lead-preview">"'+preview+'"</div>':'')
+        +conversation
         +'</div>'
         +'<div class="lead-meta"><div class="lead-time">'+relTime(lead.created_at)+'</div></div>'
         +'</div>';
