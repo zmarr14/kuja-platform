@@ -67,7 +67,7 @@
     .page-title{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:var(--text)}
     .page-title em{font-style:normal;color:var(--gold)}
     .page-sub{font-size:0.85rem;color:var(--text-mid);margin-top:0.3rem}
-    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem}
+    .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;margin-bottom:2rem}
     .stat{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.25rem;transition:box-shadow 0.2s,background 0.3s}
     .stat:hover{box-shadow:var(--shadow)}
     .stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);margin-bottom:0.4rem}
@@ -320,6 +320,7 @@
         <div class="stat"><div class="stat-label">Today</div><div class="stat-value" id="statToday">—</div></div>
         <div class="stat"><div class="stat-label">This Week</div><div class="stat-value" id="statWeek">—</div></div>
         <div class="stat"><div class="stat-label">🔥 Hot Leads</div><div class="stat-value gold" id="statHot">—</div></div>
+        <div class="stat"><div class="stat-label">After Hours</div><div class="stat-value" id="statAfterHours">—</div></div>
       </div>
       <div class="chart-card">
         <div class="chart-card-header">
@@ -579,6 +580,7 @@
 <script>
   const API_BASE = window.location.origin;
   let allLeads=[], filteredLeads=[], currentFilter='all', searchQuery='', autoRefreshInterval=null, leadsChartInstance=null;
+  let clientHours={days:[1,2,3,4,5],start:'09:00',end:'17:00'};
   const token=localStorage.getItem('kuja_token');
   const role=localStorage.getItem('kuja_role');
   const client=JSON.parse(localStorage.getItem('kuja_client')||'{}');
@@ -624,6 +626,51 @@
     if(activeMobile) activeMobile.classList.add('active');
     if(view==='listings')loadListings();
     if(view==='settings')loadCalendarStatus();
+  }
+
+  async function loadClientHours(){
+    try{
+      const res=await fetch(API_BASE+'/api/calendar/status',{headers:authH()});
+      if(!res.ok)return;
+      const data=await res.json();
+      if(data.hours&&Array.isArray(data.hours.days)&&data.hours.start&&data.hours.end){
+        clientHours={days:data.hours.days,start:data.hours.start,end:data.hours.end};
+      }
+    }catch(e){}
+  }
+
+  function parseTimeToMinutes(timeStr){
+    if(!timeStr||typeof timeStr!=='string')return null;
+    const parts=timeStr.split(':');
+    if(parts.length<2)return null;
+    const h=parseInt(parts[0],10),m=parseInt(parts[1],10);
+    if(isNaN(h)||isNaN(m))return null;
+    return h*60+m;
+  }
+
+  function toBrisbaneParts(utcDate){
+    const brisbaneMs=utcDate.getTime()+10*60*60*1000;
+    const b=new Date(brisbaneMs);
+    return{dayOfWeek:b.getUTCDay(),minutes:b.getUTCHours()*60+b.getUTCMinutes()};
+  }
+
+  function isAfterHours(createdAtStr){
+    if(!createdAtStr)return false;
+    const utcDate=new Date(createdAtStr.endsWith('Z')?createdAtStr:createdAtStr+'Z');
+    if(isNaN(utcDate.getTime()))return false;
+    const startMin=parseTimeToMinutes(clientHours.start);
+    const endMin=parseTimeToMinutes(clientHours.end);
+    if(startMin==null||endMin==null||startMin>=endMin)return true;
+    const{dayOfWeek,minutes}=toBrisbaneParts(utcDate);
+    const isWorkingDay=clientHours.days.includes(dayOfWeek);
+    const withinWorkingHours=minutes>=startMin&&minutes<endMin;
+    return!isWorkingDay||!withinWorkingHours;
+  }
+
+  function updateAfterHoursStat(){
+    const el=document.getElementById('statAfterHours');
+    if(!el)return;
+    el.textContent=allLeads.filter(l=>l.created_at&&isAfterHours(l.created_at)).length;
   }
 
   async function loadCalendarStatus(){
@@ -719,6 +766,7 @@
       if(res.status===401){logout();return;}
       const data=await res.json();
       allLeads=data.leads||[];
+      updateAfterHoursStat();
       renderLeadsChart(allLeads);
       applyFilters();
     }catch(e){
@@ -1286,7 +1334,12 @@
   }
 
   initListingForm();
-  loadStats();loadLeads();startAutoRefresh();
+  (async function initDashboard(){
+    await loadClientHours();
+    loadStats();
+    await loadLeads();
+    startAutoRefresh();
+  })();
 </script>
 </body>
 </html>
