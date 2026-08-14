@@ -88,10 +88,13 @@
     .filter-tab.active{background:var(--ink);color:var(--cream)}
     [data-theme="dark"] .filter-tab.active{background:var(--gold);color:#fff}
     .filter-tab:not(.active):hover{background:var(--cream-mid)}
-    .leads-count{font-size:0.78rem;color:var(--text-muted);margin-left:auto;white-space:nowrap;flex-shrink:0}
+    .leads-count{font-size:0.78rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0}
+    .leads-toolbar-actions{display:flex;align-items:center;gap:0.65rem;margin-left:auto;flex-shrink:0;flex-wrap:wrap}
     .btn-primary-sm{background:var(--ink);color:var(--cream);border:none;border-radius:8px;padding:0.5rem 1rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s}
     .btn-primary-sm:hover{background:var(--gold)}
     [data-theme="dark"] .btn-primary-sm{background:var(--gold);color:#fff}
+    .btn-secondary-sm{background:var(--surface);color:var(--text-mid);border:1px solid var(--border-subtle);border-radius:8px;padding:0.5rem 1rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s,color 0.15s;white-space:nowrap;flex-shrink:0}
+    .btn-secondary-sm:hover{background:var(--cream-mid);color:var(--text)}
     .listing-card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;transition:box-shadow 0.2s,background 0.3s}
     .listing-card:hover{box-shadow:var(--shadow)}
     .listing-thumb{width:64px;height:64px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--cream-mid)}
@@ -239,7 +242,7 @@
       .leads-toolbar{align-items:stretch}
       .search-wrap{min-width:0;flex:1 1 100%}
       .filter-tabs{flex:1 1 100%}
-      .leads-count{margin-left:0;width:100%}
+      .leads-toolbar-actions{margin-left:0;width:100%;justify-content:space-between}
       .chart-container{height:200px;min-height:160px}
     }
     @media(max-width:500px){
@@ -252,6 +255,7 @@
       .listing-card{flex-direction:column}
       .listing-actions{width:100%}
       .listing-actions button{flex:1;padding:0.55rem 0.75rem;font-size:0.8rem;min-height:44px}
+      .btn-secondary-sm{min-height:44px}
       .listing-modal-scroll,.listing-modal-footer{padding-left:1rem;padding-right:1rem}
       .listing-modal-footer{flex-direction:column-reverse}
       .listing-modal-footer button{width:100%;min-height:44px}
@@ -336,7 +340,10 @@
           <div class="filter-tab" onclick="setFilter('unread',this)">Unread</div>
           <div class="filter-tab" onclick="setFilter('today',this)">Today</div>
         </div>
-        <div class="leads-count" id="leadsCount"></div>
+        <div class="leads-toolbar-actions">
+          <div class="leads-count" id="leadsCount"></div>
+          <button type="button" class="btn-secondary-sm" onclick="exportLeadsCSV()">Export CSV</button>
+        </div>
       </div>
       <div class="leads-list" id="leadsList"><div class="spinner"></div></div>
     </div>
@@ -915,6 +922,47 @@
   function fullTime(dt){
     const d=new Date(dt.endsWith('Z')?dt:dt+'Z');
     return d.toLocaleString('en-AU',{timeZone:'Australia/Brisbane',dateStyle:'full',timeStyle:'short'});
+  }
+
+  function formatExportDate(dt){
+    if(!dt)return'';
+    const d=new Date(dt.endsWith('Z')?dt:dt+'Z');
+    if(isNaN(d.getTime()))return'';
+    return d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+  }
+
+  function escapeCSV(value){
+    if(value==null||value===undefined)return'';
+    const s=String(value);
+    if(/[",\n\r]/.test(s))return'"'+s.replace(/"/g,'""')+'"';
+    return s;
+  }
+
+  function exportLeadsCSV(){
+    if(!filteredLeads||!filteredLeads.length){
+      alert('No leads to export.');
+      return;
+    }
+    const headers=['Name','Phone','Email','Date','Transcript'];
+    const rows=filteredLeads.map(lead=>[
+      escapeCSV(lead.name),
+      escapeCSV(lead.phone),
+      escapeCSV(lead.email),
+      escapeCSV(formatExportDate(lead.created_at)),
+      escapeCSV(lead.transcript)
+    ].join(','));
+    const csvContent=headers.join(',')+'\n'+rows.join('\n');
+    const blob=new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const now=new Date();
+    const dateStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    a.href=url;
+    a.download='kuja-leads-'+dateStr+'.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   function logout(){localStorage.removeItem('kuja_token');localStorage.removeItem('kuja_role');localStorage.removeItem('kuja_client');window.location.href='/';}
