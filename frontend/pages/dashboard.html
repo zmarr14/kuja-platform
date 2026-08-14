@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:opsz,wght@14..32,400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -72,6 +73,10 @@
     .stat-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);margin-bottom:0.4rem}
     .stat-value{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;line-height:1;color:var(--text)}
     .stat-value.gold{color:var(--gold)}
+    .chart-card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem;transition:box-shadow 0.2s,background 0.3s;max-width:100%;overflow:hidden}
+    .chart-card-header{margin-bottom:0.85rem}
+    .chart-card-header h3{font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+    .chart-container{position:relative;width:100%;height:220px;min-height:180px;max-width:100%}
     .leads-toolbar{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap}
     .search-wrap{position:relative;flex:1;min-width:200px}
     .search-icon{position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none}
@@ -235,6 +240,7 @@
       .search-wrap{min-width:0;flex:1 1 100%}
       .filter-tabs{flex:1 1 100%}
       .leads-count{margin-left:0;width:100%}
+      .chart-container{height:200px;min-height:160px}
     }
     @media(max-width:500px){
       .stats{grid-template-columns:repeat(2,1fr);gap:0.6rem}
@@ -310,6 +316,14 @@
         <div class="stat"><div class="stat-label">Today</div><div class="stat-value" id="statToday">—</div></div>
         <div class="stat"><div class="stat-label">This Week</div><div class="stat-value" id="statWeek">—</div></div>
         <div class="stat"><div class="stat-label">🔥 Hot Leads</div><div class="stat-value gold" id="statHot">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Leads over time</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="leadsChart"></canvas>
+        </div>
       </div>
       <div class="leads-toolbar">
         <div class="search-wrap">
@@ -557,7 +571,7 @@
 
 <script>
   const API_BASE = window.location.origin;
-  let allLeads=[], filteredLeads=[], currentFilter='all', searchQuery='', autoRefreshInterval=null;
+  let allLeads=[], filteredLeads=[], currentFilter='all', searchQuery='', autoRefreshInterval=null, leadsChartInstance=null;
   const token=localStorage.getItem('kuja_token');
   const role=localStorage.getItem('kuja_role');
   const client=JSON.parse(localStorage.getItem('kuja_client')||'{}');
@@ -584,6 +598,7 @@
     document.documentElement.setAttribute('data-theme',next);
     localStorage.setItem('kuja_theme',next);
     updateThemeUI(next);
+    renderLeadsChart(allLeads);
   }
   function updateThemeUI(theme){
     document.getElementById('themeBtn').textContent=theme==='dark'?'☀️':'🌙';
@@ -697,10 +712,110 @@
       if(res.status===401){logout();return;}
       const data=await res.json();
       allLeads=data.leads||[];
+      renderLeadsChart(allLeads);
       applyFilters();
     }catch(e){
       document.getElementById('leadsList').innerHTML='<div class="no-results"><div class="no-results-icon">⚠</div><div class="no-results-title">Connection error</div><div class="no-results-sub">Could not load leads. Please refresh.</div></div>';
     }
+  }
+
+  function getChartColors(){
+    const root=getComputedStyle(document.documentElement);
+    return{
+      gold:root.getPropertyValue('--gold').trim()||'#FF5A1F',
+      text:root.getPropertyValue('--text').trim()||'#131218',
+      textMid:root.getPropertyValue('--text-mid').trim()||'#6b6560',
+      border:root.getPropertyValue('--border-subtle').trim()||'rgba(19,18,24,0.08)',
+      surface:root.getPropertyValue('--surface').trim()||'#ffffff'
+    };
+  }
+
+  function localDayKey(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function parseLeadCreatedAt(created_at){
+    if(!created_at)return null;
+    const d=new Date(created_at.endsWith('Z')?created_at:created_at+'Z');
+    return isNaN(d.getTime())?null:d;
+  }
+
+  function buildLast14DaysRange(){
+    const keys=[],labels=[],keySet=new Set();
+    const today=new Date();
+    today.setHours(0,0,0,0);
+    for(let i=13;i>=0;i--){
+      const d=new Date(today);
+      d.setDate(today.getDate()-i);
+      const key=localDayKey(d);
+      keys.push(key);
+      keySet.add(key);
+      labels.push(d.toLocaleDateString('en-AU',{month:'short',day:'numeric'}));
+    }
+    return{keys,labels,keySet};
+  }
+
+  function renderLeadsChart(leads){
+    const canvas=document.getElementById('leadsChart');
+    if(!canvas||typeof Chart==='undefined')return;
+    const{keys,labels,keySet}=buildLast14DaysRange();
+    const counts=Object.fromEntries(keys.map(k=>[k,0]));
+    (leads||[]).forEach(lead=>{
+      const d=parseLeadCreatedAt(lead.created_at);
+      if(!d)return;
+      const key=localDayKey(d);
+      if(keySet.has(key))counts[key]++;
+    });
+    const data=keys.map(k=>counts[k]);
+    const colors=getChartColors();
+    if(leadsChartInstance){
+      leadsChartInstance.destroy();
+      leadsChartInstance=null;
+    }
+    leadsChartInstance=new Chart(canvas.getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:labels,
+        datasets:[{
+          label:'',
+          data:data,
+          backgroundColor:colors.gold,
+          borderColor:colors.gold,
+          borderWidth:0,
+          borderRadius:4,
+          maxBarThickness:32
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:colors.surface,
+            titleColor:colors.text,
+            bodyColor:colors.textMid,
+            borderColor:colors.border,
+            borderWidth:1,
+            padding:10,
+            callbacks:{
+              label:function(ctx){return ctx.parsed.y+' lead'+(ctx.parsed.y===1?'':'s');}
+            }
+          }
+        },
+        scales:{
+          x:{
+            grid:{color:colors.border,drawBorder:false},
+            ticks:{color:colors.textMid,maxRotation:45,minRotation:0,font:{family:"'Inter', sans-serif",size:11}}
+          },
+          y:{
+            beginAtZero:true,
+            ticks:{color:colors.textMid,precision:0,font:{family:"'Inter', sans-serif",size:11}},
+            grid:{color:colors.border,drawBorder:false}
+          }
+        }
+      }
+    });
   }
 
   function applyFilters(){
