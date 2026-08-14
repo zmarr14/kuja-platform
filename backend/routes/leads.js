@@ -46,8 +46,28 @@ router.post('/webhook', leadWebhookLimit, async (req, res) => {
 
   const id = uuidv4();
   const ip = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.ip;
-  db.prepare('INSERT INTO leads (id, client_id, name, phone, email, transcript, source_page, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(id, client.id, name||null, phone||null, email||null, transcript||null, source_page||null, ip);
+
+  let summary = null;
+  if (transcript) {
+    try {
+      const sumRes = await fetch('https://billowing-water-5807.joicvmarr4.workers.dev', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: transcript }],
+          system: 'Summarize this lead conversation in one short sentence — what they want and any key details (property, budget, timeline). Be concise and factual, no preamble, just the summary sentence itself.',
+        }),
+      });
+      const sumData = await sumRes.json();
+      const textBlock = sumData.content && sumData.content.find(b => b.type === 'text');
+      if (textBlock) summary = textBlock.text;
+    } catch (e) {
+      console.error('Lead summary generation failed:', e.message);
+    }
+  }
+
+  db.prepare('INSERT INTO leads (id, client_id, name, phone, email, transcript, source_page, ip_address, summary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, client.id, name||null, phone||null, email||null, transcript||null, source_page||null, ip, summary);
 
   const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
   sendLeadNotification({ clientEmail: client.email, agencyName: client.agency_name, lead }).catch(e => console.error('Email failed:', e.message));

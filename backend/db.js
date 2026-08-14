@@ -105,6 +105,12 @@ if (!listingCols.includes('image_url')) {
   console.log('✅ Migration: added image_url column to listings');
 }
 
+const leadCols = db.prepare("PRAGMA table_info(leads)").all().map(c => c.name);
+if (!leadCols.includes('summary')) {
+  db.exec('ALTER TABLE leads ADD COLUMN summary TEXT');
+  console.log('✅ Migration: added summary column to leads');
+}
+
 function seedAdmin() {
   // Seed admin account
   const existing = db.prepare('SELECT id FROM admin WHERE email = ?').get(process.env.ADMIN_EMAIL);
