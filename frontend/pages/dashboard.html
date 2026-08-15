@@ -1518,6 +1518,11 @@
       return 'Block '+d+', '+formatAssistantTime(input.start_time)+'–'+formatAssistantTime(input.end_time)+(input.reason?(' for: '+input.reason):'');
     }
     if(tool==='mark_lead_read')return 'Mark lead as read'+(input.lead_id?(' ('+input.lead_id.slice(0,8)+'…)'):'');
+    if(tool==='cancel_booking'){
+      const when=input.start_time?new Date(input.start_time).toLocaleString('en-AU',{timeZone:'Australia/Brisbane',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+      return 'Cancel booking: '+(input.lead_name||'Unknown')+(when?(' · '+when):'');
+    }
+    if(tool==='update_listing_status')return 'Set '+(input.address||'listing')+' to '+String(input.status||'').replace(/_/g,' ');
     return 'Perform action: '+tool;
   }
 

@@ -204,3 +204,5 @@ router.post('/public/book', bookingLimit, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.getValidToken = getValidToken;
+module.exports.getHours = getHours;
