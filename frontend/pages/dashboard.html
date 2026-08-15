@@ -30,7 +30,7 @@
       --cream:#1b1a20;--cream-mid:#17161c;--white:#1b1a20;--shadow:0 8px 32px rgba(0,0,0,0.5);
     }
     html{scroll-behavior:smooth}
-    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;transition:background 0.3s,color 0.3s}
     nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0.9rem 2rem;background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);transition:background 0.3s}
     nav{padding-left:max(1rem, env(safe-area-inset-left));padding-right:max(1rem, env(safe-area-inset-right))}
     .logo{display:inline-flex;align-items:center;gap:0.6rem;text-decoration:none}
@@ -49,8 +49,8 @@
     .theme-toggle:hover{border-color:var(--gold)}
     .logout-btn{font-size:0.8rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:color 0.2s;padding:0.35rem 0.15rem;min-height:44px;display:inline-flex;align-items:center}
     .logout-btn:hover{color:var(--text)}
-    .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 62px)}
-    .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-subtle);padding:1.5rem 1.25rem;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;display:flex;flex-direction:column;transition:background 0.3s}
+    .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 62px);min-height:calc(100dvh - 62px)}
+    .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-subtle);padding:1.5rem 1.25rem;position:sticky;top:62px;height:calc(100vh - 62px);height:calc(100dvh - 62px);overflow-y:auto;display:flex;flex-direction:column;transition:background 0.3s}
     .sidebar-section{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:0.6rem;margin-top:1.25rem}
     .sidebar-section:first-child{margin-top:0}
     .nav-item{display:flex;align-items:center;gap:0.65rem;padding:0.55rem 0.7rem;border-radius:8px;font-size:0.85rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all 0.15s;text-decoration:none;margin-bottom:2px}
@@ -239,7 +239,7 @@
     .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
     .toggle input:checked + .toggle-slider{background:var(--gold);border-color:var(--gold)}
     .toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
-    .assistant-panel{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;display:flex;flex-direction:column;height:calc(100vh - 220px);min-height:420px;max-height:720px;max-width:100%;width:100%;overflow:hidden;transition:background 0.3s;box-sizing:border-box}
+    .assistant-panel{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;display:flex;flex-direction:column;height:calc(100vh - 220px);height:calc(100dvh - 220px);min-height:420px;max-height:720px;max-width:100%;width:100%;overflow:hidden;transition:background 0.3s;box-sizing:border-box}
     .assistant-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;min-width:0;-webkit-overflow-scrolling:touch}
     .assistant-msg{max-width:85%;padding:0.75rem 1rem;border-radius:12px;font-size:0.88rem;line-height:1.55;word-break:break-word;overflow-wrap:anywhere}
     .assistant-msg-user{align-self:flex-end;background:var(--ink);color:var(--cream)}
@@ -251,7 +251,7 @@
     .assistant-proposal-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
     .assistant-proposal-actions .btn-primary-sm,.assistant-proposal-actions .lf-cancel{min-height:44px}
     .assistant-input-row{display:flex;gap:0.5rem;padding:1rem;border-top:1px solid var(--border-subtle);background:var(--surface);min-width:0;flex-shrink:0;box-sizing:border-box}
-    .assistant-input{flex:1;min-width:0;width:100%;max-width:100%;background:var(--bg);border:1px solid var(--border-subtle);border-radius:9px;padding:0.65rem 0.85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.88rem;outline:none;min-height:44px;box-sizing:border-box}
+    .assistant-input{flex:1;min-width:0;width:100%;max-width:100%;background:var(--bg);border:1px solid var(--border-subtle);border-radius:9px;padding:0.65rem 0.85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:16px;outline:none;min-height:44px;box-sizing:border-box}
     .assistant-input:focus{border-color:var(--gold)}
     .assistant-send{background:var(--ink);color:var(--cream);border:none;border-radius:9px;padding:0.65rem 1.1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;min-height:44px;flex-shrink:0}
     .assistant-send:hover{background:var(--gold)}
@@ -272,9 +272,11 @@
       .filter-tabs{flex:1 1 100%}
       .leads-toolbar-actions{margin-left:0;width:100%;justify-content:space-between}
       .chart-container{height:200px;min-height:160px}
-      .assistant-panel{height:calc(100vh - 300px);min-height:320px;max-height:none}
-      .assistant-messages{padding:1rem}
-      .assistant-input-row{padding:0.75rem}
+      .assistant-panel{height:auto;min-height:0;max-height:none}
+      .assistant-messages{min-height:220px;max-height:45vh;max-height:45dvh;padding:1rem}
+      .assistant-input-row{padding:0.75rem;position:static}
+      body:has(#assistantInput:focus) .mobile-nav{display:none}
+      body:has(#assistantInput:focus) .main{padding-bottom:calc(1.25rem + env(safe-area-inset-bottom, 0px))}
     }
     @media(max-width:500px){
       .stats{grid-template-columns:repeat(2,1fr);gap:0.6rem}
@@ -295,7 +297,7 @@
       .listing-modal-footer button{width:100%;min-height:44px}
       .lf-row,.lf-row3{grid-template-columns:1fr}
       .modal-header,.modal-body{padding-left:1rem;padding-right:1rem}
-      .transcript-box{max-height:min(40vh, 320px)}
+      .transcript-box{max-height:min(40vh, 320px);max-height:min(40dvh, 320px)}
       .detail-row{flex-direction:column;gap:0.25rem}
       .detail-label{width:auto;padding-top:0}
       .setting-row{flex-wrap:wrap;gap:0.75rem}
