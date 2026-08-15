@@ -73,6 +73,9 @@
     .page-title{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:var(--text)}
     .page-title em{font-style:normal;color:var(--gold)}
     .page-sub{font-size:0.85rem;color:var(--text-mid);margin-top:0.3rem}
+    #morningBrief{max-width:100%;box-sizing:border-box;overflow:hidden}
+    #briefGreeting,#briefBody{padding-right:2.25rem;word-break:break-word;overflow-wrap:anywhere}
+    #briefDismiss{min-width:44px;min-height:44px;padding:0.25rem;display:flex;align-items:center;justify-content:center}
     .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;margin-bottom:2rem}
     .stat{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:1.25rem;transition:box-shadow 0.2s,background 0.3s}
     .stat:hover{box-shadow:var(--shadow)}
@@ -353,6 +356,14 @@
         <div class="page-label">Lead Dashboard</div>
         <div class="page-title" id="pageTitle">Your <em>Leads</em></div>
         <div class="page-sub">Real-time leads captured by your Kuja AI chatbot</div>
+      </div>
+      <div id="morningBrief" style="background:linear-gradient(135deg, var(--gold), #ff7a45); border-radius:14px; padding:1.5rem; margin-bottom:1.5rem; color:#fff; display:none; position:relative;">
+        <button id="briefDismiss" onclick="dismissMorningBrief()" aria-label="Dismiss morning brief" style="position:absolute;top:10px;right:12px;background:none;border:0;color:#fff;font-size:1.3rem;line-height:1;cursor:pointer;opacity:.8;">×</button>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; opacity:0.85; margin-bottom:6px;">
+          Morning brief
+        </div>
+        <div id="briefGreeting" style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.3rem; margin-bottom:10px;"></div>
+        <div id="briefBody" style="font-size:0.9rem; line-height:1.5; opacity:0.95; white-space:pre-line;"></div>
       </div>
       <div class="stats">
         <div class="stat"><div class="stat-label">Total Leads</div><div class="stat-value" id="statTotal">—</div></div>
@@ -839,6 +850,7 @@
       if(res.status===401){logout();return;}
       const data=await res.json();
       allLeads=data.leads||[];
+      renderMorningBrief();
       renderLeadsChart();
       updateAfterHoursStat();
       applyFilters();
@@ -866,6 +878,74 @@
     if(!created_at)return null;
     const d=new Date(created_at.endsWith('Z')?created_at:created_at+'Z');
     return isNaN(d.getTime())?null:d;
+  }
+
+  function getMorningBriefDismissKey(){
+    return 'kuja_brief_dismissed_'+localDayKey(new Date());
+  }
+
+  function renderMorningBrief(){
+    const card=document.getElementById('morningBrief');
+    if(!card)return;
+    const dismissKey=getMorningBriefDismissKey();
+    if(localStorage.getItem(dismissKey)){
+      card.style.display='none';
+      return;
+    }
+    const now=Date.now();
+    const twentyFourHoursAgo=now-24*60*60*1000;
+    const threeHoursAgo=now-3*60*60*1000;
+    const leadsToday=allLeads.filter(l=>{
+      const d=parseLeadCreatedAt(l.created_at);
+      return d&&d.getTime()>=twentyFourHoursAgo;
+    }).length;
+    const hotLeads=allLeads.filter(l=>l.score_label==='hot');
+    let hottest=null;
+    hotLeads.forEach(l=>{
+      const d=parseLeadCreatedAt(l.created_at);
+      if(!d)return;
+      if(!hottest){
+        hottest=l;
+        return;
+      }
+      const bestD=parseLeadCreatedAt(hottest.created_at);
+      if(bestD&&d.getTime()>bestD.getTime())hottest=l;
+    });
+    const needsFollowup=allLeads.filter(l=>{
+      if(l.followup_sent)return false;
+      const d=parseLeadCreatedAt(l.created_at);
+      return d&&d.getTime()<threeHoursAgo;
+    }).length;
+    const displayName=(client.name&&client.name.trim())||(client.agencyName&&client.agencyName.trim())||'';
+    const greetingLine=displayName?'Good morning, '+displayName:'Good morning';
+    const dateLine=new Date().toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+    document.getElementById('briefGreeting').innerHTML=escapeHtml(greetingLine)+'<br><span style="font-size:0.85rem;font-weight:400;opacity:0.9">'+escapeHtml(dateLine)+'</span>';
+    const lines=[];
+    if(leadsToday>0){
+      lines.push('Kuja captured '+leadsToday+' new lead'+(leadsToday===1?'':'s')+' in the last 24 hours.');
+    }
+    if(hottest){
+      const leadName=(hottest.name&&hottest.name.trim())||'New lead';
+      let hotLine='Your hottest right now: '+leadName;
+      if(hottest.transcript&&hottest.transcript.trim()){
+        const excerpt=hottest.transcript.trim();
+        hotLine+=' — '+(excerpt.length>60?excerpt.slice(0,60).trim()+'…':excerpt);
+      }
+      lines.push(hotLine);
+    }
+    if(needsFollowup>0){
+      lines.push(needsFollowup+' lead'+(needsFollowup===1?'':'s')+" haven't been followed up yet.");
+    }
+    if(leadsToday===0&&needsFollowup===0){
+      lines.push('All caught up — no new leads since yesterday.');
+    }
+    document.getElementById('briefBody').textContent=lines.join('\n');
+    card.style.display='';
+  }
+
+  function dismissMorningBrief(){
+    localStorage.setItem(getMorningBriefDismissKey(),'1');
+    document.getElementById('morningBrief').style.display='none';
   }
 
   function monthKey(d){
