@@ -98,6 +98,10 @@ if (!clientCols.includes('booking_hours')) {
   db.exec('ALTER TABLE clients ADD COLUMN booking_hours TEXT');
   console.log('✅ Migration: added booking_hours column to clients');
 }
+if (!clientCols.includes('assistant_auto_confirm')) {
+  db.exec('ALTER TABLE clients ADD COLUMN assistant_auto_confirm INTEGER DEFAULT 0');
+  console.log('✅ Migration: added assistant_auto_confirm column to clients');
+}
 
 const listingCols = db.prepare("PRAGMA table_info(listings)").all().map(c => c.name);
 if (!listingCols.includes('image_url')) {

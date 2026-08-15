@@ -239,6 +239,22 @@
     .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
     .toggle input:checked + .toggle-slider{background:var(--gold);border-color:var(--gold)}
     .toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
+    .assistant-panel{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;display:flex;flex-direction:column;height:calc(100vh - 220px);min-height:420px;max-height:720px;overflow:hidden;transition:background 0.3s}
+    .assistant-messages{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem}
+    .assistant-msg{max-width:85%;padding:0.75rem 1rem;border-radius:12px;font-size:0.88rem;line-height:1.55;word-break:break-word}
+    .assistant-msg-user{align-self:flex-end;background:var(--ink);color:var(--cream)}
+    [data-theme="dark"] .assistant-msg-user{background:var(--gold);color:#fff}
+    .assistant-msg-bot{align-self:flex-start;background:var(--cream-mid);color:var(--text);border:1px solid var(--border-subtle)}
+    [data-theme="dark"] .assistant-msg-bot{background:var(--card)}
+    .assistant-proposal{align-self:stretch;max-width:100%;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:1rem}
+    .assistant-proposal-text{font-size:0.88rem;color:var(--text);margin-bottom:0.85rem;line-height:1.5}
+    .assistant-proposal-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
+    .assistant-input-row{display:flex;gap:0.5rem;padding:1rem;border-top:1px solid var(--border-subtle);background:var(--surface)}
+    .assistant-input{flex:1;background:var(--bg);border:1px solid var(--border-subtle);border-radius:9px;padding:0.65rem 0.85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.88rem;outline:none;min-height:44px}
+    .assistant-input:focus{border-color:var(--gold)}
+    .assistant-send{background:var(--ink);color:var(--cream);border:none;border-radius:9px;padding:0.65rem 1.1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;min-height:44px;flex-shrink:0}
+    .assistant-send:hover{background:var(--gold)}
+    .assistant-send:disabled{opacity:0.5;cursor:not-allowed}
     .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin:2.5rem auto}
     @keyframes spin{to{transform:rotate(360deg)}}
     @media(max-width:1100px){.stats{grid-template-columns:repeat(3,1fr)}}
@@ -312,6 +328,7 @@
     <div class="sidebar-section">Menu</div>
     <div class="nav-item active" onclick="showView('leads',this)"><span class="icon">◈</span> My Leads <span class="nav-badge" id="sidebarBadge">0</span></div>
     <div class="nav-item" onclick="showView('listings',this)"><span class="icon">⌂</span> My Listings</div>
+    <div class="nav-item" onclick="showView('assistant',this)"><span class="icon">✦</span> Assistant</div>
     <div class="nav-item" onclick="showView('settings',this)"><span class="icon">⚙</span> Settings</div>
     <a class="nav-item" href="mailto:info@kujaai.com?subject=Support Request"><span class="icon">↗</span> Support</a>
     <div class="sidebar-footer">
@@ -382,6 +399,24 @@
       <div class="leads-list" id="listingsList"><div class="spinner"></div></div>
     </div>
 
+    <!-- ASSISTANT VIEW -->
+    <div id="viewAssistant" style="display:none">
+      <div class="page-header">
+        <div class="page-label">Internal Assistant</div>
+        <div class="page-title">Your <em>Assistant</em></div>
+        <div class="page-sub">Manage listings, calendar, and leads with natural language</div>
+      </div>
+      <div class="assistant-panel">
+        <div class="assistant-messages" id="assistantMessages">
+          <div class="assistant-msg assistant-msg-bot">Hi — I can add or edit listings, block calendar time, and mark leads as read. What would you like to do?</div>
+        </div>
+        <div class="assistant-input-row">
+          <input class="assistant-input" type="text" id="assistantInput" placeholder="Ask me to do something…" autocomplete="off" onkeydown="if(event.key==='Enter')sendAssistantMessage()">
+          <button type="button" class="assistant-send" id="assistantSendBtn" onclick="sendAssistantMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+
     <!-- SETTINGS VIEW -->
     <div id="viewSettings" style="display:none">
       <div class="page-header">
@@ -449,6 +484,13 @@
                 <button class="btn-primary-sm" onclick="saveBookingHours()">Save hours</button>
                 <span id="hoursSaveMsg" style="font-size:0.78rem;color:var(--text-mid)"></span>
               </div>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-group-title">Assistant</div>
+            <div class="setting-row">
+              <div><div class="setting-label">Auto-confirm assistant actions</div><div class="setting-sub">When on, the assistant makes changes immediately without asking you to confirm first.</div></div>
+              <label class="toggle"><input type="checkbox" id="assistantAutoConfirmToggle" onchange="saveAssistantAutoConfirm()"><span class="toggle-slider"></span></label>
             </div>
           </div>
           <div class="settings-group">
@@ -636,6 +678,7 @@
   function showView(view,el,mobileEl){
     document.getElementById('viewLeads').style.display=view==='leads'?'':'none';
     document.getElementById('viewListings').style.display=view==='listings'?'':'none';
+    document.getElementById('viewAssistant').style.display=view==='assistant'?'':'none';
     document.getElementById('viewSettings').style.display=view==='settings'?'':'none';
     document.querySelectorAll('.sidebar .nav-item').forEach(i=>i.classList.remove('active'));
     document.querySelectorAll('.mobile-nav-item').forEach(i=>i.classList.remove('active'));
@@ -644,7 +687,8 @@
     const activeMobile = mobileEl || document.querySelector('.mobile-nav-item[data-view="' + view + '"]');
     if(activeMobile) activeMobile.classList.add('active');
     if(view==='listings')loadListings();
-    if(view==='settings')loadCalendarStatus();
+    if(view==='assistant')loadAssistantSettings();
+    if(view==='settings'){loadCalendarStatus();loadAssistantSettings();}
   }
 
   async function loadClientHours(){
@@ -1422,6 +1466,177 @@
   }
 
   initListingForm();
+
+  let assistantHistory=[], assistantAutoConfirm=false, assistantLoading=false, pendingAssistantProposal=null;
+
+  async function loadAssistantSettings(){
+    try{
+      const res=await fetch(API_BASE+'/api/assistant/settings',{headers:authH()});
+      if(!res.ok)return;
+      const data=await res.json();
+      assistantAutoConfirm=!!data.assistant_auto_confirm;
+      const toggle=document.getElementById('assistantAutoConfirmToggle');
+      if(toggle)toggle.checked=assistantAutoConfirm;
+    }catch(e){}
+  }
+
+  async function saveAssistantAutoConfirm(){
+    const enabled=document.getElementById('assistantAutoConfirmToggle').checked;
+    assistantAutoConfirm=enabled;
+    try{
+      await fetch(API_BASE+'/api/assistant/settings',{
+        method:'PATCH',
+        headers:authH(),
+        body:JSON.stringify({assistant_auto_confirm:enabled})
+      });
+    }catch(e){}
+  }
+
+  function appendAssistantMessage(text, role){
+    const box=document.getElementById('assistantMessages');
+    const el=document.createElement('div');
+    el.className='assistant-msg assistant-msg-'+(role==='user'?'user':'bot');
+    el.textContent=text;
+    box.appendChild(el);
+    box.scrollTop=box.scrollHeight;
+  }
+
+  function formatAssistantTime(t){
+    if(!t)return t;
+    const parts=t.split(':');
+    const h=parseInt(parts[0],10), m=parts[1]||'00';
+    const ampm=h>=12?'pm':'am';
+    const h12=h%12||12;
+    return h12+':'+m+ampm;
+  }
+
+  function describeAssistantProposal(tool, input){
+    if(tool==='add_listing')return 'Add listing: '+(input.address||'new property')+(input.price?(' · '+input.price):'');
+    if(tool==='edit_listing')return 'Update listing'+(input.address?(': '+input.address):'')+(input.price?(' · '+input.price):'');
+    if(tool==='block_calendar_time'){
+      const d=input.date?new Date(input.date+'T12:00:00').toLocaleDateString('en-AU',{month:'short',day:'numeric'}):input.date;
+      return 'Block '+d+', '+formatAssistantTime(input.start_time)+'–'+formatAssistantTime(input.end_time)+(input.reason?(' for: '+input.reason):'');
+    }
+    if(tool==='mark_lead_read')return 'Mark lead as read'+(input.lead_id?(' ('+input.lead_id.slice(0,8)+'…)'):'');
+    return 'Perform action: '+tool;
+  }
+
+  function appendAssistantProposal(proposal){
+    pendingAssistantProposal=proposal;
+    const box=document.getElementById('assistantMessages');
+    const card=document.createElement('div');
+    card.className='assistant-proposal';
+    card.id='assistantProposalCard';
+    const text=document.createElement('div');
+    text.className='assistant-proposal-text';
+    text.textContent=describeAssistantProposal(proposal.tool, proposal.input);
+    const actions=document.createElement('div');
+    actions.className='assistant-proposal-actions';
+    const confirmBtn=document.createElement('button');
+    confirmBtn.type='button';
+    confirmBtn.className='btn-primary-sm';
+    confirmBtn.textContent='Confirm';
+    confirmBtn.onclick=function(){confirmAssistantProposal();};
+    const cancelBtn=document.createElement('button');
+    cancelBtn.type='button';
+    cancelBtn.className='lf-cancel';
+    cancelBtn.style.cssText='padding:0.5rem 1rem;border-radius:8px;cursor:pointer';
+    cancelBtn.textContent='Cancel';
+    cancelBtn.onclick=function(){cancelAssistantProposal();};
+    actions.appendChild(confirmBtn);
+    actions.appendChild(cancelBtn);
+    card.appendChild(text);
+    card.appendChild(actions);
+    box.appendChild(card);
+    box.scrollTop=box.scrollHeight;
+  }
+
+  function clearAssistantProposalCard(){
+    document.getElementById('assistantProposalCard')?.remove();
+    pendingAssistantProposal=null;
+  }
+
+  async function executeAssistantAction(tool, input){
+    const res=await fetch(API_BASE+'/api/assistant/execute',{
+      method:'POST',
+      headers:authH(),
+      body:JSON.stringify({tool,input})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Action failed');
+    const summary='Done — '+(data.summary||'Change applied.');
+    appendAssistantMessage(summary,'bot');
+    assistantHistory.push({role:'assistant',content:summary});
+    if(tool==='mark_lead_read'){loadStats();if(allLeads.length)applyFilters();}
+    if(tool==='add_listing'||tool==='edit_listing')loadListings();
+    return data;
+  }
+
+  async function confirmAssistantProposal(){
+    const proposal=pendingAssistantProposal;
+    if(!proposal||assistantLoading)return;
+    clearAssistantProposalCard();
+    assistantLoading=true;
+    document.getElementById('assistantSendBtn').disabled=true;
+    try{
+      await executeAssistantAction(proposal.tool, proposal.input);
+    }catch(e){
+      appendAssistantMessage('Error — '+e.message,'bot');
+    }finally{
+      assistantLoading=false;
+      document.getElementById('assistantSendBtn').disabled=false;
+    }
+  }
+
+  function cancelAssistantProposal(){
+    clearAssistantProposalCard();
+    const msg="No worries, didn't make that change.";
+    appendAssistantMessage(msg,'bot');
+    assistantHistory.push({role:'assistant',content:msg});
+  }
+
+  async function sendAssistantMessage(){
+    const inputEl=document.getElementById('assistantInput');
+    const btn=document.getElementById('assistantSendBtn');
+    const text=inputEl.value.trim();
+    if(!text||assistantLoading)return;
+    inputEl.value='';
+    assistantLoading=true;
+    btn.disabled=true;
+    clearAssistantProposalCard();
+    appendAssistantMessage(text,'user');
+    try{
+      const res=await fetch(API_BASE+'/api/assistant/chat',{
+        method:'POST',
+        headers:authH(),
+        body:JSON.stringify({message:text,history:assistantHistory})
+      });
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||'Request failed');
+      assistantHistory.push({role:'user',content:text});
+      if(data.type==='text'){
+        appendAssistantMessage(data.message,'bot');
+        assistantHistory.push({role:'assistant',content:data.message});
+      }else if(data.type==='proposal'){
+        if(data.message){
+          appendAssistantMessage(data.message,'bot');
+          assistantHistory.push({role:'assistant',content:data.message});
+        }
+        if(assistantAutoConfirm){
+          await executeAssistantAction(data.tool, data.input);
+        }else{
+          appendAssistantProposal(data);
+        }
+      }
+    }catch(e){
+      appendAssistantMessage(e.message||'Something went wrong.','bot');
+    }finally{
+      assistantLoading=false;
+      btn.disabled=false;
+      inputEl.focus();
+    }
+  }
+
   (async function initDashboard(){
     await loadClientHours();
     loadStats();

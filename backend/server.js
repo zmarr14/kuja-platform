@@ -27,6 +27,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/chat', require('./routes/chat'));
+app.use('/api/assistant', require('./routes/assistant'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', platform: 'Kuja AI' }));
 
