@@ -110,6 +110,14 @@ if (!leadCols.includes('summary')) {
   db.exec('ALTER TABLE leads ADD COLUMN summary TEXT');
   console.log('✅ Migration: added summary column to leads');
 }
+if (!leadCols.includes('followup_sent')) {
+  db.exec('ALTER TABLE leads ADD COLUMN followup_sent INTEGER DEFAULT 0');
+  console.log('✅ Migration: added followup_sent column to leads');
+}
+if (!leadCols.includes('agent_reminder_sent')) {
+  db.exec('ALTER TABLE leads ADD COLUMN agent_reminder_sent INTEGER DEFAULT 0');
+  console.log('✅ Migration: added agent_reminder_sent column to leads');
+}
 
 function seedAdmin() {
   // Seed admin account
