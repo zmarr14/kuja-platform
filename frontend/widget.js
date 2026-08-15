@@ -278,6 +278,42 @@
     return SYSTEM;
   }
 
+  function sendMessageAsQuestion(text){
+    setLoading(true);
+    messages.push({role: 'user', content: text});
+    var typing = showTyping();
+
+    fetch(PLATFORM_URL + '/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({api_key: CALENDAR_API_KEY, messages: messages, system: stagedSystem()})
+    }).then(function(res){
+      if(!res.ok) throw new Error('bad status');
+      return res.json();
+    }).then(function(data){
+      if(data.error) throw new Error(data.error);
+      var textBlock = data.content && data.content.find(function(b){ return b.type === 'text'; });
+      var reply = textBlock ? textBlock.text : "Sorry, I'm not totally sure on that one — hit the Get in touch button and we'll help you out directly!";
+      typing.remove();
+      addMsg(reply, 'bot');
+      messages.push({role: 'assistant', content: reply});
+
+      if(leadStage === null){
+        var r = reply.toLowerCase();
+        if(r.indexOf('your name') !== -1 || r.indexOf('grab your') !== -1 || r.indexOf('get your name') !== -1 || r.indexOf("what's your name") !== -1 || r.indexOf('name?') !== -1){
+          leadStage = 'ask_name';
+        }
+      }
+    }).catch(function(){
+      typing.remove();
+      addMsg("Sorry, something went wrong there. Try the Get in touch button and we'll sort you out.", 'bot');
+      messages.pop();
+    }).finally(function(){
+      setLoading(false);
+      input.focus();
+    });
+  }
+
   function sendMessage(){
     var text = input.value.trim();
     if(!text || isLoading) return;
@@ -317,10 +353,28 @@
     }
 
     if(leadStage === 'ask_name'){
-      if(text.length < 2 || /^(no|not|that's not|thats not)\b/i.test(text)){
-        addMsg("Sorry, I meant your actual name — what should I call you?", 'bot');
+      var looksLikeQuestion = text.indexOf('?') !== -1 || /^(how|what|when|where|why|who|which|is|are|can|does|do)\b/i.test(text);
+
+      if(
+        text.length < 2 ||
+        text.length > 60 ||
+        looksLikeQuestion ||
+        looksLikeTimeOrDate(text) ||
+        /^(no|not|nah|nope)\b/i.test(text) ||
+        /^\d+$/.test(text) ||
+        text.indexOf('@') !== -1
+      ){
+        leadStage = null;
+
+        var t2 = showTyping();
+        setTimeout(function(){
+          t2.remove();
+          sendMessageAsQuestion(text);
+        }, 400);
+
         return;
       }
+
       leadData.name = text;
       leadStage = 'ask_phone';
       addMsg('Nice to meet you, ' + text + '! Best phone number to reach you on?', 'bot');
@@ -360,39 +414,7 @@
       return;
     }
 
-    setLoading(true);
-    messages.push({role: 'user', content: text});
-    var typing = showTyping();
-
-    fetch(PLATFORM_URL + '/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({api_key: CALENDAR_API_KEY, messages: messages, system: stagedSystem()})
-    }).then(function(res){
-      if(!res.ok) throw new Error('bad status');
-      return res.json();
-    }).then(function(data){
-      if(data.error) throw new Error(data.error);
-      var textBlock = data.content && data.content.find(function(b){ return b.type === 'text'; });
-      var reply = textBlock ? textBlock.text : "Sorry, I'm not totally sure on that one — hit the Get in touch button and we'll help you out directly!";
-      typing.remove();
-      addMsg(reply, 'bot');
-      messages.push({role: 'assistant', content: reply});
-
-      if(leadStage === null){
-        var r = reply.toLowerCase();
-        if(r.indexOf('your name') !== -1 || r.indexOf('grab your') !== -1 || r.indexOf('get your name') !== -1 || r.indexOf("what's your name") !== -1 || r.indexOf('name?') !== -1){
-          leadStage = 'ask_name';
-        }
-      }
-    }).catch(function(){
-      typing.remove();
-      addMsg("Sorry, something went wrong there. Try the Get in touch button and we'll sort you out.", 'bot');
-      messages.pop();
-    }).finally(function(){
-      setLoading(false);
-      input.focus();
-    });
+    sendMessageAsQuestion(text);
   }
 
   sendBtn.addEventListener('click', sendMessage);
