@@ -239,18 +239,19 @@
     .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
     .toggle input:checked + .toggle-slider{background:var(--gold);border-color:var(--gold)}
     .toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
-    .assistant-panel{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;display:flex;flex-direction:column;height:calc(100vh - 220px);min-height:420px;max-height:720px;overflow:hidden;transition:background 0.3s}
-    .assistant-messages{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem}
-    .assistant-msg{max-width:85%;padding:0.75rem 1rem;border-radius:12px;font-size:0.88rem;line-height:1.55;word-break:break-word}
+    .assistant-panel{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;display:flex;flex-direction:column;height:calc(100vh - 220px);min-height:420px;max-height:720px;max-width:100%;width:100%;overflow:hidden;transition:background 0.3s;box-sizing:border-box}
+    .assistant-messages{flex:1;overflow-y:auto;overflow-x:hidden;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;min-width:0;-webkit-overflow-scrolling:touch}
+    .assistant-msg{max-width:85%;padding:0.75rem 1rem;border-radius:12px;font-size:0.88rem;line-height:1.55;word-break:break-word;overflow-wrap:anywhere}
     .assistant-msg-user{align-self:flex-end;background:var(--ink);color:var(--cream)}
     [data-theme="dark"] .assistant-msg-user{background:var(--gold);color:#fff}
     .assistant-msg-bot{align-self:flex-start;background:var(--cream-mid);color:var(--text);border:1px solid var(--border-subtle)}
     [data-theme="dark"] .assistant-msg-bot{background:var(--card)}
-    .assistant-proposal{align-self:stretch;max-width:100%;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:1rem}
-    .assistant-proposal-text{font-size:0.88rem;color:var(--text);margin-bottom:0.85rem;line-height:1.5}
+    .assistant-proposal{align-self:stretch;max-width:100%;width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:1rem;min-width:0}
+    .assistant-proposal-text{font-size:0.88rem;color:var(--text);margin-bottom:0.85rem;line-height:1.5;word-break:break-word;overflow-wrap:anywhere}
     .assistant-proposal-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
-    .assistant-input-row{display:flex;gap:0.5rem;padding:1rem;border-top:1px solid var(--border-subtle);background:var(--surface)}
-    .assistant-input{flex:1;background:var(--bg);border:1px solid var(--border-subtle);border-radius:9px;padding:0.65rem 0.85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.88rem;outline:none;min-height:44px}
+    .assistant-proposal-actions .btn-primary-sm,.assistant-proposal-actions .lf-cancel{min-height:44px}
+    .assistant-input-row{display:flex;gap:0.5rem;padding:1rem;border-top:1px solid var(--border-subtle);background:var(--surface);min-width:0;flex-shrink:0;box-sizing:border-box}
+    .assistant-input{flex:1;min-width:0;width:100%;max-width:100%;background:var(--bg);border:1px solid var(--border-subtle);border-radius:9px;padding:0.65rem 0.85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.88rem;outline:none;min-height:44px;box-sizing:border-box}
     .assistant-input:focus{border-color:var(--gold)}
     .assistant-send{background:var(--ink);color:var(--cream);border:none;border-radius:9px;padding:0.65rem 1.1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;min-height:44px;flex-shrink:0}
     .assistant-send:hover{background:var(--gold)}
@@ -271,6 +272,9 @@
       .filter-tabs{flex:1 1 100%}
       .leads-toolbar-actions{margin-left:0;width:100%;justify-content:space-between}
       .chart-container{height:200px;min-height:160px}
+      .assistant-panel{height:calc(100vh - 300px);min-height:320px;max-height:none}
+      .assistant-messages{padding:1rem}
+      .assistant-input-row{padding:0.75rem}
     }
     @media(max-width:500px){
       .stats{grid-template-columns:repeat(2,1fr);gap:0.6rem}
@@ -296,6 +300,9 @@
       .detail-label{width:auto;padding-top:0}
       .setting-row{flex-wrap:wrap;gap:0.75rem}
       .setting-row .btn-primary-sm,.setting-row .lf-cancel{width:100%;min-height:44px}
+      .assistant-msg{max-width:92%}
+      .assistant-proposal-actions{flex-direction:column}
+      .assistant-proposal-actions .btn-primary-sm,.assistant-proposal-actions .lf-cancel{width:100%}
     }
   </style>
 </head>
@@ -522,6 +529,7 @@
 <nav class="mobile-nav" aria-label="Dashboard navigation">
   <button type="button" class="mobile-nav-item active" data-view="leads" onclick="showView('leads', null, this)"><span class="icon">◈</span>Leads</button>
   <button type="button" class="mobile-nav-item" data-view="listings" onclick="showView('listings', null, this)"><span class="icon">⌂</span>Listings</button>
+  <button type="button" class="mobile-nav-item" data-view="assistant" onclick="showView('assistant', null, this)"><span class="icon">✦</span>Assistant</button>
   <button type="button" class="mobile-nav-item" data-view="settings" onclick="showView('settings', null, this)"><span class="icon">⚙</span>Settings</button>
 </nav>
 
