@@ -138,6 +138,24 @@
     .score-badge{display:inline-flex;align-items:center;gap:3px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:middle}
     .score-badge.hot{background:rgba(255,90,31,0.12);color:var(--gold)}
     .score-badge.warm{background:var(--cream-mid);color:var(--text-mid)}
+    .stage-badge{display:inline-flex;align-items:center;gap:3px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;max-width:100%}
+    .stage-badge.stage-new{background:var(--cream-mid);color:var(--text-mid)}
+    .stage-badge.stage-contacted{background:rgba(255,90,31,0.08);color:var(--text-mid)}
+    .stage-badge.stage-inspection_booked{background:rgba(255,90,31,0.12);color:var(--gold)}
+    .stage-badge.stage-applied{background:var(--cream-mid);color:var(--text)}
+    .stage-badge.stage-won{background:rgba(46,125,50,0.12);color:#2e7d32}
+    .stage-badge.stage-lost{background:var(--cream-mid);color:var(--text-muted)}
+    [data-theme="dark"] .stage-badge.stage-won{color:#81c784}
+    .lead-activity-section{margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border-subtle)}
+    .activity-timeline{display:flex;flex-direction:column;gap:0.75rem;max-width:100%}
+    .activity-empty{font-size:0.82rem;color:var(--text-muted);padding:0.25rem 0}
+    .activity-item{max-width:100%}
+    .activity-item-head{font-size:0.82rem;color:var(--text);word-break:break-word;overflow-wrap:anywhere}
+    .activity-item-note{font-size:0.78rem;color:var(--text-mid);margin-top:0.25rem;line-height:1.45;word-break:break-word;overflow-wrap:anywhere}
+    .activity-actions{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1rem;max-width:100%}
+    .activity-btn{background:var(--surface);border:1px solid var(--border-subtle);border-radius:8px;padding:0.55rem 0.75rem;font-size:0.76rem;font-weight:500;color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;min-height:44px;flex:1 1 calc(50% - 0.25rem);min-width:0;max-width:100%}
+    .activity-btn:hover{background:var(--cream-mid);color:var(--text);border-color:var(--border)}
+    .activity-btn:disabled{opacity:0.55;cursor:not-allowed}
     .no-results{text-align:center;padding:3.5rem 2rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:16px}
     .no-results-icon{font-size:2.5rem;margin-bottom:0.75rem}
     .no-results-title{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--text)}
@@ -308,6 +326,7 @@
       .assistant-msg{max-width:92%}
       .assistant-proposal-actions{flex-direction:column}
       .assistant-proposal-actions .btn-primary-sm,.assistant-proposal-actions .lf-cancel{width:100%}
+      .activity-btn{flex:1 1 100%}
     }
   </style>
 </head>
@@ -661,7 +680,7 @@
 
 <script>
   const API_BASE = window.location.origin;
-  let allLeads=[], filteredLeads=[], currentFilter='all', searchQuery='', autoRefreshInterval=null, leadsChartInstance=null, chartRange='week';
+  let allLeads=[], filteredLeads=[], currentFilter='all', searchQuery='', autoRefreshInterval=null, leadsChartInstance=null, chartRange='week', openLeadIndex=null;
   let clientHours={days:[1,2,3,4,5],start:'09:00',end:'17:00'};
   const token=localStorage.getItem('kuja_token');
   const role=localStorage.getItem('kuja_role');
@@ -1085,6 +1104,104 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  const STAGE_LABELS={new:'New',contacted:'Contacted',inspection_booked:'Inspection booked',applied:'Applied',won:'Won',lost:'Lost'};
+  const ACTIVITY_LABELS={called:'Called',emailed:'Emailed',inspection_booked:'Inspection booked',applied:'Applied',won:'Won',lost:'Lost',note:'Note'};
+  const ACTIVITY_STAGE_MAP={inspection_booked:'inspection_booked',applied:'applied',won:'won',lost:'lost'};
+
+  function getLeadStage(lead){return lead&&lead.stage?lead.stage:'new';}
+  function renderStageBadge(lead){
+    const stage=getLeadStage(lead);
+    const label=STAGE_LABELS[stage]||'New';
+    return '<span class="stage-badge stage-'+stage+'">'+escapeHtml(label)+'</span>';
+  }
+  function formatActivityTime(dt){
+    if(!dt)return'';
+    const d=new Date(dt.endsWith('Z')?dt:dt+'Z');
+    if(isNaN(d.getTime()))return'';
+    const now=new Date(),diff=(now-d)/1000;
+    if(diff<60)return'just now';
+    if(diff<3600)return Math.floor(diff/60)+'m ago';
+    if(diff<86400)return Math.floor(diff/3600)+'h ago';
+    if(diff<172800)return'Yesterday';
+    if(diff<604800)return Math.floor(diff/86400)+'d ago';
+    return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+  }
+  function renderActivityActions(){
+    return '<div class="activity-actions">'
+      +'<button type="button" class="activity-btn" onclick="postLeadActivity(\'called\')">Called</button>'
+      +'<button type="button" class="activity-btn" onclick="postLeadActivity(\'emailed\')">Emailed</button>'
+      +'<button type="button" class="activity-btn" onclick="postLeadActivity(\'inspection_booked\')">Booked Inspection</button>'
+      +'<button type="button" class="activity-btn" onclick="postLeadActivity(\'applied\')">Mark Applied</button>'
+      +'<button type="button" class="activity-btn" onclick="postLeadActivity(\'won\')">Mark Won</button>'
+      +'<button type="button" class="activity-btn" onclick="postLeadActivity(\'lost\')">Mark Lost</button>'
+      +'</div>';
+  }
+  function renderActivitySection(){
+    return '<div class="lead-activity-section">'
+      +'<div class="transcript-title">Activity</div>'
+      +'<div class="activity-timeline" id="leadActivityTimeline"><div class="activity-empty">Loading…</div></div>'
+      +renderActivityActions()
+      +'</div>';
+  }
+  function renderActivityTimeline(activities){
+    const el=document.getElementById('leadActivityTimeline');
+    if(!el)return;
+    if(!activities||!activities.length){
+      el.innerHTML='<div class="activity-empty">No activity yet.</div>';
+      return;
+    }
+    el.innerHTML=activities.map(a=>{
+      const label=ACTIVITY_LABELS[a.type]||a.type;
+      let html='<div class="activity-item"><div class="activity-item-head">'+escapeHtml(label)+' · '+escapeHtml(formatActivityTime(a.created_at))+'</div>';
+      if(a.note&&String(a.note).trim())html+='<div class="activity-item-note">"'+escapeHtml(String(a.note).trim())+'"</div>';
+      return html+'</div>';
+    }).join('');
+  }
+  async function loadLeadActivity(leadId){
+    const el=document.getElementById('leadActivityTimeline');
+    if(!el)return;
+    try{
+      const res=await fetch(API_BASE+'/api/leads/'+leadId+'/activity',{headers:authH()});
+      if(!res.ok){
+        el.innerHTML='<div class="activity-empty">Could not load activity.</div>';
+        return;
+      }
+      const data=await res.json();
+      renderActivityTimeline(data.activities||[]);
+    }catch(e){
+      el.innerHTML='<div class="activity-empty">Could not load activity.</div>';
+    }
+  }
+  function syncLeadStage(leadId,stage){
+    const lead=filteredLeads.find(l=>l.id===leadId);
+    if(lead)lead.stage=stage;
+    const match=allLeads.find(l=>l.id===leadId);
+    if(match)match.stage=stage;
+    const stageEl=document.getElementById('modalLeadStage');
+    if(stageEl&&lead)stageEl.innerHTML=renderStageBadge(lead);
+  }
+  async function postLeadActivity(type){
+    const lead=openLeadIndex!=null?filteredLeads[openLeadIndex]:null;
+    if(!lead)return;
+    const buttons=document.querySelectorAll('.activity-btn');
+    buttons.forEach(b=>{b.disabled=true;});
+    try{
+      const res=await fetch(API_BASE+'/api/leads/'+lead.id+'/activity',{method:'POST',headers:authH(),body:JSON.stringify({type,note:''})});
+      if(!res.ok){
+        const err=await res.json().catch(()=>({}));
+        alert(err.error||'Could not log activity.');
+        return;
+      }
+      if(ACTIVITY_STAGE_MAP[type])syncLeadStage(lead.id,ACTIVITY_STAGE_MAP[type]);
+      await loadLeadActivity(lead.id);
+      renderLeads(filteredLeads);
+    }catch(e){
+      alert('Could not log activity.');
+    }finally{
+      buttons.forEach(b=>{b.disabled=false;});
+    }
+  }
+
   function renderLeadConversation(lead,i){
     const hasSummary=!!lead.summary;
     const initialText=hasSummary?lead.summary:(lead.transcript||'');
@@ -1126,11 +1243,12 @@
       const initials=(lead.name||lead.email||'?').charAt(0).toUpperCase();
       const unread=!lead.read_at;
       const badge=lead.score_label==='hot'?'<span class="score-badge hot">🔥 Hot</span>':lead.score_label==='warm'?'<span class="score-badge warm">Warm</span>':'';
+      const stageBadge=renderStageBadge(lead);
       const conversation=renderLeadConversation(lead,i);
       return '<div class="lead-card '+(unread?'unread':'')+'" onclick="openLead('+i+')">'
         +'<div class="lead-avatar">'+initials+'</div>'
         +'<div class="lead-body">'
-        +'<div class="lead-name">'+( lead.name||lead.email||'Unknown Lead')+(unread?'<span class="unread-dot"></span>':'')+badge+'</div>'
+        +'<div class="lead-name">'+( lead.name||lead.email||'Unknown Lead')+(unread?'<span class="unread-dot"></span>':'')+badge+stageBadge+'</div>'
         +'<div class="lead-contacts">'+(lead.phone?'<span class="lead-contact">📞 '+lead.phone+'</span>':'')+(lead.email?'<span class="lead-contact">✉ '+lead.email+'</span>':'')+'</div>'
         +conversation
         +'</div>'
@@ -1142,6 +1260,7 @@
   async function openLead(index){
     const lead=filteredLeads[index];
     if(!lead)return;
+    openLeadIndex=index;
     if(!lead.read_at){
       fetch(API_BASE+'/api/leads/'+lead.id+'/read',{method:'PATCH',headers:authH()}).catch(()=>{});
       lead.read_at=new Date().toISOString();
@@ -1151,18 +1270,21 @@
     const scoreRow=lead.score_label==='hot'?'<div class="detail-row"><div class="detail-label">Score</div><div class="detail-value"><span class="score-badge hot">🔥 Hot lead</span></div></div>':lead.score_label==='warm'?'<div class="detail-row"><div class="detail-label">Score</div><div class="detail-value"><span class="score-badge warm">Warm lead</span></div></div>':'';
     document.getElementById('modalBody').innerHTML=
       scoreRow
-      +(lead.name?'<div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">'+lead.name+'</div></div>':'')
-      +(lead.phone?'<div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value"><a href="tel:'+lead.phone+'">'+lead.phone+'</a></div></div>':'')
-      +(lead.email?'<div class="detail-row"><div class="detail-label">Email</div><div class="detail-value"><a href="mailto:'+lead.email+'">'+lead.email+'</a></div></div>':'')
+      +'<div class="detail-row"><div class="detail-label">Stage</div><div class="detail-value" id="modalLeadStage">'+renderStageBadge(lead)+'</div></div>'
+      +(lead.name?'<div class="detail-row"><div class="detail-label">Name</div><div class="detail-value">'+escapeHtml(lead.name)+'</div></div>':'')
+      +(lead.phone?'<div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value"><a href="tel:'+escapeHtml(lead.phone)+'">'+escapeHtml(lead.phone)+'</a></div></div>':'')
+      +(lead.email?'<div class="detail-row"><div class="detail-label">Email</div><div class="detail-value"><a href="mailto:'+escapeHtml(lead.email)+'">'+escapeHtml(lead.email)+'</a></div></div>':'')
       +'<div class="detail-row"><div class="detail-label">Captured</div><div class="detail-value">'+fullTime(lead.created_at)+'</div></div>'
-      +(lead.source_page?'<div class="detail-row"><div class="detail-label">Source</div><div class="detail-value" style="font-size:0.8rem;word-break:break-all">'+lead.source_page+'</div></div>':'')
+      +(lead.source_page?'<div class="detail-row"><div class="detail-label">Source</div><div class="detail-value" style="font-size:0.8rem;word-break:break-all">'+escapeHtml(lead.source_page)+'</div></div>':'')
       +'<div class="transcript-title">Conversation</div>'
-      +'<div class="transcript-box">'+fmtTranscript(lead.transcript)+'</div>';
+      +'<div class="transcript-box">'+fmtTranscript(lead.transcript)+'</div>'
+      +renderActivitySection();
     document.getElementById('modalOverlay').classList.add('open');
     renderLeads(filteredLeads);
+    await loadLeadActivity(lead.id);
   }
 
-  function closeModal(e){if(e&&e.target!==document.getElementById('modalOverlay'))return;document.getElementById('modalOverlay').classList.remove('open');}
+  function closeModal(e){if(e&&e.target!==document.getElementById('modalOverlay'))return;document.getElementById('modalOverlay').classList.remove('open');openLeadIndex=null;}
 
   function fmtTranscript(t){
     if(!t)return '<div class="t-line bot">No transcript recorded.</div>';

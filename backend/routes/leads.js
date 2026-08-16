@@ -29,6 +29,36 @@ function withScore(lead) {
   return { ...lead, ...scoreLead(lead) };
 }
 
+const VALID_STAGES = ['new', 'contacted', 'inspection_booked', 'applied', 'won', 'lost'];
+const VALID_ACTIVITY_TYPES = ['called', 'emailed', 'inspection_booked', 'applied', 'won', 'lost', 'note'];
+const ACTIVITY_STAGE_MAP = {
+  inspection_booked: 'inspection_booked',
+  applied: 'applied',
+  won: 'won',
+  lost: 'lost',
+};
+const STAGE_LABELS = {
+  new: 'New',
+  contacted: 'Contacted',
+  inspection_booked: 'Inspection booked',
+  applied: 'Applied',
+  won: 'Won',
+  lost: 'Lost',
+};
+
+function stageActivityType(stage) {
+  if (['inspection_booked', 'applied', 'won', 'lost'].includes(stage)) return stage;
+  return 'note';
+}
+
+function stageChangeNote(stage) {
+  return `Stage changed to ${STAGE_LABELS[stage] || stage}`;
+}
+
+function getOwnedLead(id, clientId) {
+  return db.prepare('SELECT * FROM leads WHERE id = ? AND client_id = ?').get(id, clientId);
+}
+
 // Chatbot posts lead here (replaces Formspree)
 const leadWebhookLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -105,6 +135,77 @@ router.patch('/:id/read', clientAuth, (req, res) => {
   if (!lead) return res.status(404).json({ error: 'Not found' });
   db.prepare('UPDATE leads SET read_at = CURRENT_TIMESTAMP WHERE id = ?').run(req.params.id);
   res.json({ success: true });
+});
+
+router.post('/:id/activity', clientAuth, (req, res) => {
+  const { type, note } = req.body || {};
+  if (!type || !VALID_ACTIVITY_TYPES.includes(type)) {
+    return res.status(400).json({ error: 'Invalid activity type' });
+  }
+  const lead = getOwnedLead(req.params.id, req.clientId);
+  if (!lead) return res.status(404).json({ error: 'Not found' });
+
+  const activityId = uuidv4();
+  const stageUpdate = ACTIVITY_STAGE_MAP[type] || null;
+  const insertActivity = db.prepare(`
+    INSERT INTO lead_activity (id, lead_id, client_id, type, note)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  const updateStage = db.prepare('UPDATE leads SET stage = ? WHERE id = ? AND client_id = ?');
+
+  const run = db.transaction(() => {
+    insertActivity.run(activityId, lead.id, req.clientId, type, note || null);
+    if (stageUpdate) updateStage.run(stageUpdate, lead.id, req.clientId);
+  });
+  run();
+
+  const activity = db.prepare('SELECT * FROM lead_activity WHERE id = ?').get(activityId);
+  res.json(activity);
+});
+
+router.get('/:id/activity', clientAuth, (req, res) => {
+  const lead = getOwnedLead(req.params.id, req.clientId);
+  if (!lead) return res.status(404).json({ error: 'Not found' });
+  const activities = db.prepare(`
+    SELECT *
+    FROM lead_activity
+    WHERE lead_id = ?
+      AND client_id = ?
+    ORDER BY created_at DESC
+  `).all(req.params.id, req.clientId);
+  res.json({ activities });
+});
+
+router.patch('/:id/stage', clientAuth, (req, res) => {
+  const { stage } = req.body || {};
+  if (!stage || !VALID_STAGES.includes(stage)) {
+    return res.status(400).json({ error: 'Invalid stage' });
+  }
+  const lead = getOwnedLead(req.params.id, req.clientId);
+  if (!lead) return res.status(404).json({ error: 'Not found' });
+
+  const currentStage = lead.stage || 'new';
+  if (currentStage === stage) {
+    return res.json({ success: true, stage, lead: withScore({ ...lead, stage }) });
+  }
+
+  const activityId = uuidv4();
+  const activityType = stageActivityType(stage);
+  const activityNote = activityType === 'note' ? stageChangeNote(stage) : stageChangeNote(stage);
+  const insertActivity = db.prepare(`
+    INSERT INTO lead_activity (id, lead_id, client_id, type, note)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  const updateStage = db.prepare('UPDATE leads SET stage = ? WHERE id = ? AND client_id = ?');
+
+  const run = db.transaction(() => {
+    updateStage.run(stage, lead.id, req.clientId);
+    insertActivity.run(activityId, lead.id, req.clientId, activityType, activityNote);
+  });
+  run();
+
+  const updatedLead = getOwnedLead(lead.id, req.clientId);
+  res.json({ success: true, stage, lead: withScore(updatedLead) });
 });
 
 // Admin: all leads
