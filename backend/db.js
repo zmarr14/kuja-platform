@@ -83,6 +83,17 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_listings_client ON listings(client_id);
   CREATE INDEX IF NOT EXISTS idx_bookings_client ON bookings(client_id);
   CREATE INDEX IF NOT EXISTS idx_bookings_time ON bookings(start_time);
+  CREATE TABLE IF NOT EXISTS lead_activity (
+    id          TEXT PRIMARY KEY,
+    lead_id     TEXT NOT NULL,
+    client_id   TEXT NOT NULL,
+    type        TEXT NOT NULL,
+    note        TEXT,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES leads(id),
+    FOREIGN KEY (client_id) REFERENCES clients(id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_activity_lead ON lead_activity(lead_id);
 `);
 
 // Migrations: SQLite has no "ADD COLUMN IF NOT EXISTS", so we check
@@ -121,6 +132,10 @@ if (!leadCols.includes('followup_sent')) {
 if (!leadCols.includes('agent_reminder_sent')) {
   db.exec('ALTER TABLE leads ADD COLUMN agent_reminder_sent INTEGER DEFAULT 0');
   console.log('✅ Migration: added agent_reminder_sent column to leads');
+}
+if (!leadCols.includes('stage')) {
+  db.exec("ALTER TABLE leads ADD COLUMN stage TEXT DEFAULT 'new'");
+  console.log('✅ Migration: added stage column to leads');
 }
 
 function seedAdmin() {
