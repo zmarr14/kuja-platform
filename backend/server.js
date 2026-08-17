@@ -38,7 +38,12 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  seedAdmin();
+  try {
+    seedAdmin();
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
   console.log(`
   ╔════════════════════════════════╗
   ║   Kuja AI Platform             ║

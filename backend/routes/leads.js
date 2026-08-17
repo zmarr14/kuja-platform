@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+const rateLimit = require('express-rate-limit');
 const { db } = require('../db');
 const { clientAuth, adminAuth } = require('../middleware/auth');
-const { rateLimit } = require('../middleware/rateLimit');
 const { sendLeadNotification } = require('../email');
 
 // ── Lead scoring ──
@@ -83,10 +83,13 @@ function matchListingAddress(sourcePage, exactMap, normMap) {
 
 // Chatbot posts lead here (replaces Formspree)
 const leadWebhookLimit = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20,                  // way above legitimate traffic for a small business, catches spam floods
-  keyFn: (req) => req.body?.api_key,
-  message: 'Too many leads submitted — please try again shortly.',
+  windowMs: 10 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({ error: 'Too many submissions, please try again shortly.' });
+  },
 });
 
 router.post('/webhook', leadWebhookLimit, async (req, res) => {

@@ -144,10 +144,22 @@ if (!leadCols.includes('followup_stage')) {
   console.log('✅ Migration: synced followup_stage for legacy followup_sent records');
 }
 
+function assertAdminCredentialsForSeed() {
+  if (!process.env.ADMIN_EMAIL || !String(process.env.ADMIN_EMAIL).trim()) {
+    console.error('❌ ADMIN_EMAIL not set — refusing to seed admin/client with an insecure default');
+    throw new Error('ADMIN_EMAIL is required');
+  }
+  if (!process.env.ADMIN_PASSWORD || !String(process.env.ADMIN_PASSWORD).trim()) {
+    console.error('❌ ADMIN_PASSWORD not set — refusing to seed admin/client with an insecure default');
+    throw new Error('ADMIN_PASSWORD is required');
+  }
+}
+
 function seedAdmin() {
   // Seed admin account
   const existing = db.prepare('SELECT id FROM admin WHERE email = ?').get(process.env.ADMIN_EMAIL);
   if (!existing) {
+    assertAdminCredentialsForSeed();
     const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12);
     db.prepare('INSERT INTO admin (email, password) VALUES (?, ?)').run(process.env.ADMIN_EMAIL, hash);
     console.log('✅ Admin account created:', process.env.ADMIN_EMAIL);
@@ -160,14 +172,15 @@ function seedAdmin() {
 
   const existingClient = db.prepare('SELECT id FROM clients WHERE id = ?').get(KUJA_CLIENT_ID);
   if (!existingClient) {
-    const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'kujaai2026', 12);
+    assertAdminCredentialsForSeed();
+    const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12);
     db.prepare(`
       INSERT INTO clients (id, name, email, password, agency_name, website, api_key, plan)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
     `).run(
       KUJA_CLIENT_ID,
       'Ezekiel',
-      process.env.ADMIN_EMAIL || 'info@kujaai.com',
+      process.env.ADMIN_EMAIL,
       hash,
       'Kuja AI',
       'https://kujaai.com',
