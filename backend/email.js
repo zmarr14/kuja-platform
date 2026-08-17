@@ -248,6 +248,146 @@ async function sendLeadFollowup({ leadEmail, leadName, agencyName }) {
   });
 }
 
+async function sendLeadFollowupDay3({ leadEmail, leadName, agencyName }) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#F3EFE6;padding:40px 20px">
+
+      <div style="background:#131218;padding:26px 32px;border-radius:14px 14px 0 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding-right:12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="36" height="36" style="background:#F3EFE6;border-radius:8px;">
+                <tr><td align="center" style="font-family:Arial,sans-serif;font-weight:900;font-size:18px;color:#131218;">
+                  K<span style="color:#FF5A1F;">·</span>
+                </td></tr>
+              </table>
+            </td>
+            <td>
+              <h1 style="margin:0;color:#F3EFE6;font-size:19px;font-weight:700;letter-spacing:-0.01em;">Just checking in</h1>
+              <p style="margin:5px 0 0;color:#FF5A1F;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Courier New',monospace;">${agencyName}</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background:#ffffff;padding:28px 32px;border:1px solid rgba(19,18,24,0.08);border-top:none;border-radius:0 0 14px 14px;">
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#131218;font-family:Arial,sans-serif;">Hi ${leadName},</p>
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#131218;font-family:Arial,sans-serif;">Hope you're going well. We chatted with ${agencyName} a few days ago and wanted to see if you had any other questions or if you'd like to pick up where you left off.</p>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:#131218;font-family:Arial,sans-serif;">Feel free to reply to this email or visit our website whenever it suits you.</p>
+      </div>
+
+      <p style="text-align:center;margin-top:18px;font-size:11px;color:#a39d90;font-family:Arial,sans-serif;letter-spacing:0.3px;">Powered by Kuja · Brisbane, Australia</p>
+    </div>`;
+
+  const payload = JSON.stringify({
+    from: 'Kuja AI <info@kujaai.com>',
+    to: [leadEmail],
+    subject: 'Just checking in',
+    html
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.SMTP_PASS}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`✅ Lead Day 3 follow-up sent to ${leadEmail}`);
+          resolve(data);
+        } else {
+          console.error(`❌ Resend API error ${res.statusCode}:`, data);
+          reject(new Error(`Resend API error: ${res.statusCode} ${data}`));
+        }
+      });
+    });
+    req.on('error', (e) => {
+      console.error('❌ Email request failed:', e.message);
+      reject(e);
+    });
+    req.write(payload);
+    req.end();
+  });
+}
+
+async function sendLeadFollowupDay7({ leadEmail, leadName, agencyName }) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#F3EFE6;padding:40px 20px">
+
+      <div style="background:#131218;padding:26px 32px;border-radius:14px 14px 0 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding-right:12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="36" height="36" style="background:#F3EFE6;border-radius:8px;">
+                <tr><td align="center" style="font-family:Arial,sans-serif;font-weight:900;font-size:18px;color:#131218;">
+                  K<span style="color:#FF5A1F;">·</span>
+                </td></tr>
+              </table>
+            </td>
+            <td>
+              <h1 style="margin:0;color:#F3EFE6;font-size:19px;font-weight:700;letter-spacing:-0.01em;">Still interested?</h1>
+              <p style="margin:5px 0 0;color:#FF5A1F;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Courier New',monospace;">${agencyName}</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background:#ffffff;padding:28px 32px;border:1px solid rgba(19,18,24,0.08);border-top:none;border-radius:0 0 14px 14px;">
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#131218;font-family:Arial,sans-serif;">Hi ${leadName},</p>
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#131218;font-family:Arial,sans-serif;">This is a quick final check-in from ${agencyName}. If you're still interested, we'd love to hear from you — just reply to this email or drop back into our chat on the website.</p>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:#131218;font-family:Arial,sans-serif;">No pressure at all — we won't follow up again after this.</p>
+      </div>
+
+      <p style="text-align:center;margin-top:18px;font-size:11px;color:#a39d90;font-family:Arial,sans-serif;letter-spacing:0.3px;">Powered by Kuja · Brisbane, Australia</p>
+    </div>`;
+
+  const payload = JSON.stringify({
+    from: 'Kuja AI <info@kujaai.com>',
+    to: [leadEmail],
+    subject: 'Still interested?',
+    html
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.resend.com',
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.SMTP_PASS}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`✅ Lead Day 7 follow-up sent to ${leadEmail}`);
+          resolve(data);
+        } else {
+          console.error(`❌ Resend API error ${res.statusCode}:`, data);
+          reject(new Error(`Resend API error: ${res.statusCode} ${data}`));
+        }
+      });
+    });
+    req.on('error', (e) => {
+      console.error('❌ Email request failed:', e.message);
+      reject(e);
+    });
+    req.write(payload);
+    req.end();
+  });
+}
+
 async function sendAgentReminder({ agentEmail, leadName, leadPhone, leadEmail, transcript, agencyName }) {
   const excerpt = transcriptExcerpt(transcript);
 
@@ -327,4 +467,4 @@ async function sendAgentReminder({ agentEmail, leadName, leadPhone, leadEmail, t
   });
 }
 
-module.exports = { sendLeadNotification, sendBookingConfirmation, sendLeadFollowup, sendAgentReminder };
+module.exports = { sendLeadNotification, sendBookingConfirmation, sendLeadFollowup, sendLeadFollowupDay3, sendLeadFollowupDay7, sendAgentReminder };
