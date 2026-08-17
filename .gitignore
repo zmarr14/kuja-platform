@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+*.env
+!*.env.example
+
+# SQLite data (created at runtime)
+backend/data/
+
+# Logs
+*.log
+npm-debug.log*
