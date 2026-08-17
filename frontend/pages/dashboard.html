@@ -156,6 +156,22 @@
     .activity-btn{background:var(--surface);border:1px solid var(--border-subtle);border-radius:8px;padding:0.55rem 0.75rem;font-size:0.76rem;font-weight:500;color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;min-height:44px;flex:1 1 calc(50% - 0.25rem);min-width:0;max-width:100%}
     .activity-btn:hover{background:var(--cream-mid);color:var(--text);border-color:var(--border)}
     .activity-btn:disabled{opacity:0.55;cursor:not-allowed}
+    .pipeline-board{display:flex;gap:0.85rem;overflow-x:auto;padding-bottom:0.5rem;margin:0 -0.25rem;max-width:100%;-webkit-overflow-scrolling:touch}
+    .pipeline-column{flex:0 0 280px;min-width:280px;max-width:320px;background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;display:flex;flex-direction:column;max-height:none}
+    .pipeline-column-header{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.85rem 1rem;border-bottom:1px solid var(--border-subtle);background:var(--cream-mid);border-radius:14px 14px 0 0}
+    .pipeline-column-title{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid)}
+    .pipeline-column-count{font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);min-width:1.5rem;text-align:right}
+    .pipeline-column-body{flex:1;min-height:120px;padding:0.65rem;display:flex;flex-direction:column;gap:0.55rem;overflow-y:auto;max-height:calc(100dvh - 280px)}
+    .pipeline-column-body.drag-over{background:rgba(255,90,31,0.04);outline:2px dashed rgba(255,90,31,0.25);outline-offset:-4px;border-radius:0 0 12px 12px}
+    .pipeline-empty{font-size:0.78rem;color:var(--text-muted);text-align:center;padding:1.25rem 0.5rem;border:1px dashed var(--border-subtle);border-radius:10px;background:var(--bg)}
+    .pipeline-card{background:var(--bg);border:1px solid var(--border-subtle);border-radius:10px;padding:0.75rem 0.85rem;cursor:grab;transition:box-shadow 0.15s,border-color 0.15s,opacity 0.15s;max-width:100%;box-sizing:border-box}
+    .pipeline-card:hover{box-shadow:var(--shadow);border-color:var(--border)}
+    .pipeline-card.dragging{opacity:0.55;cursor:grabbing}
+    .pipeline-card-name{font-family:'Space Grotesk',sans-serif;font-size:0.88rem;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;overflow-wrap:anywhere}
+    .pipeline-card-meta{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-top:0.45rem;flex-wrap:wrap}
+    .pipeline-card-time{font-size:0.72rem;color:var(--text-muted);white-space:nowrap}
+    .pipeline-stage-select{display:none;width:100%;margin-top:0.55rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:8px;padding:0.55rem 0.65rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.82rem;outline:none;min-height:44px}
+    .pipeline-stage-select:focus{border-color:var(--gold)}
     .no-results{text-align:center;padding:3.5rem 2rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:16px}
     .no-results-icon{font-size:2.5rem;margin-bottom:0.75rem}
     .no-results-title{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--text)}
@@ -298,6 +314,12 @@
       .assistant-input-row{padding:0.75rem;position:static}
       body:has(#assistantInput:focus) .mobile-nav{display:none}
       body:has(#assistantInput:focus) .main{padding-bottom:calc(1.25rem + env(safe-area-inset-bottom, 0px))}
+      .pipeline-column{flex-basis:min(300px,78vw);min-width:min(300px,78vw)}
+      .pipeline-column-body{max-height:none}
+      .pipeline-card{cursor:default}
+      .pipeline-stage-select{display:block}
+      .mobile-nav-item{font-size:0.58rem;padding:0.4rem 0.15rem}
+      .mobile-nav-item .icon{font-size:14px}
     }
     @media(max-width:500px){
       .stats{grid-template-columns:repeat(2,1fr);gap:0.6rem}
@@ -357,9 +379,10 @@
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-section">Menu</div>
-    <div class="nav-item active" onclick="showView('leads',this)"><span class="icon">◈</span> My Leads <span class="nav-badge" id="sidebarBadge">0</span></div>
-    <div class="nav-item" onclick="showView('listings',this)"><span class="icon">⌂</span> My Listings</div>
     <div class="nav-item" onclick="showView('assistant',this)"><span class="icon">✦</span> Assistant</div>
+    <div class="nav-item active" onclick="showView('leads',this)"><span class="icon">◈</span> My Leads <span class="nav-badge" id="sidebarBadge">0</span></div>
+    <div class="nav-item" onclick="showView('pipeline',this)"><span class="icon">▦</span> Pipeline</div>
+    <div class="nav-item" onclick="showView('listings',this)"><span class="icon">⌂</span> My Listings</div>
     <div class="nav-item" onclick="showView('settings',this)"><span class="icon">⚙</span> Settings</div>
     <a class="nav-item" href="mailto:info@kujaai.com?subject=Support Request"><span class="icon">↗</span> Support</a>
     <div class="sidebar-footer">
@@ -422,6 +445,16 @@
         </div>
       </div>
       <div class="leads-list" id="leadsList"><div class="spinner"></div></div>
+    </div>
+
+    <!-- PIPELINE VIEW -->
+    <div id="viewPipeline" style="display:none">
+      <div class="page-header">
+        <div class="page-label">Lead Pipeline</div>
+        <div class="page-title">Your <em>Pipeline</em></div>
+        <div class="page-sub">Drag leads between stages or use the stage selector on mobile</div>
+      </div>
+      <div class="pipeline-board" id="pipelineBoard"></div>
     </div>
 
     <!-- LISTINGS VIEW -->
@@ -559,9 +592,10 @@
 </div>
 
 <nav class="mobile-nav" aria-label="Dashboard navigation">
-  <button type="button" class="mobile-nav-item active" data-view="leads" onclick="showView('leads', null, this)"><span class="icon">◈</span>Leads</button>
-  <button type="button" class="mobile-nav-item" data-view="listings" onclick="showView('listings', null, this)"><span class="icon">⌂</span>Listings</button>
   <button type="button" class="mobile-nav-item" data-view="assistant" onclick="showView('assistant', null, this)"><span class="icon">✦</span>Assistant</button>
+  <button type="button" class="mobile-nav-item active" data-view="leads" onclick="showView('leads', null, this)"><span class="icon">◈</span>Leads</button>
+  <button type="button" class="mobile-nav-item" data-view="pipeline" onclick="showView('pipeline', null, this)"><span class="icon">▦</span>Pipeline</button>
+  <button type="button" class="mobile-nav-item" data-view="listings" onclick="showView('listings', null, this)"><span class="icon">⌂</span>Listings</button>
   <button type="button" class="mobile-nav-item" data-view="settings" onclick="showView('settings', null, this)"><span class="icon">⚙</span>Settings</button>
 </nav>
 
@@ -717,6 +751,7 @@
 
   function showView(view,el,mobileEl){
     document.getElementById('viewLeads').style.display=view==='leads'?'':'none';
+    document.getElementById('viewPipeline').style.display=view==='pipeline'?'':'none';
     document.getElementById('viewListings').style.display=view==='listings'?'':'none';
     document.getElementById('viewAssistant').style.display=view==='assistant'?'':'none';
     document.getElementById('viewSettings').style.display=view==='settings'?'':'none';
@@ -726,6 +761,7 @@
     else document.querySelector('.sidebar .nav-item[onclick*="' + view + '"]')?.classList.add('active');
     const activeMobile = mobileEl || document.querySelector('.mobile-nav-item[data-view="' + view + '"]');
     if(activeMobile) activeMobile.classList.add('active');
+    if(view==='pipeline')renderPipeline();
     if(view==='listings')loadListings();
     if(view==='assistant')loadAssistantSettings();
     if(view==='settings'){loadCalendarStatus();loadAssistantSettings();}
@@ -873,6 +909,7 @@
       renderLeadsChart();
       updateAfterHoursStat();
       applyFilters();
+      if(isPipelineViewVisible())renderPipeline();
     }catch(e){
       document.getElementById('leadsList').innerHTML='<div class="no-results"><div class="no-results-icon">⚠</div><div class="no-results-title">Connection error</div><div class="no-results-sub">Could not load leads. Please refresh.</div></div>';
     }
@@ -1105,10 +1142,126 @@
   }
 
   const STAGE_LABELS={new:'New',contacted:'Contacted',inspection_booked:'Inspection booked',applied:'Applied',won:'Won',lost:'Lost'};
+  const PIPELINE_STAGES=[
+    {id:'new',label:'New'},
+    {id:'contacted',label:'Contacted'},
+    {id:'inspection_booked',label:'Inspection Booked'},
+    {id:'applied',label:'Applied'},
+    {id:'won',label:'Won'},
+    {id:'lost',label:'Lost'},
+  ];
+  let pipelineDragLeadId=null;
+  let pipelineDragFromStage=null;
+  let pipelineDropBound=false;
   const ACTIVITY_LABELS={called:'Called',emailed:'Emailed',inspection_booked:'Inspection booked',applied:'Applied',won:'Won',lost:'Lost',note:'Note'};
   const ACTIVITY_STAGE_MAP={inspection_booked:'inspection_booked',applied:'applied',won:'won',lost:'lost'};
 
   function getLeadStage(lead){return lead&&lead.stage?lead.stage:'new';}
+  function isPipelineViewVisible(){
+    const el=document.getElementById('viewPipeline');
+    return el&&el.style.display!=='none';
+  }
+  function renderPipelineScoreBadge(lead){
+    if(lead.score_label==='hot')return '<span class="score-badge hot">🔥 Hot</span>';
+    if(lead.score_label==='warm')return '<span class="score-badge warm">Warm</span>';
+    return '';
+  }
+  function renderPipelineCard(lead){
+    const stage=getLeadStage(lead);
+    const name=lead.name||lead.phone||lead.email||'Unknown lead';
+    const badge=renderPipelineScoreBadge(lead);
+    const stageOptions=PIPELINE_STAGES.map(s=>'<option value="'+s.id+'"'+(stage===s.id?' selected':'')+'>'+escapeHtml(s.label)+'</option>').join('');
+    return '<div class="pipeline-card" draggable="true" data-lead-id="'+escapeHtml(lead.id)+'" data-stage="'+stage+'">'
+      +'<div class="pipeline-card-name">'+escapeHtml(name)+(badge?' '+badge:'')+'</div>'
+      +'<div class="pipeline-card-meta"><span class="pipeline-card-time">'+escapeHtml(relTime(lead.created_at))+'</span></div>'
+      +'<select class="pipeline-stage-select" aria-label="Move lead stage" onclick="event.stopPropagation()" onchange="movePipelineLeadStage(this.closest(\'.pipeline-card\').dataset.leadId,this.value,this.closest(\'.pipeline-card\').dataset.stage)">'
+      +stageOptions
+      +'</select>'
+      +'</div>';
+  }
+  function renderPipeline(){
+    const board=document.getElementById('pipelineBoard');
+    if(!board)return;
+    const buckets=Object.fromEntries(PIPELINE_STAGES.map(s=>[s.id,[]]));
+    allLeads.forEach(lead=>{
+      const stage=getLeadStage(lead);
+      if(buckets[stage])buckets[stage].push(lead);
+      else buckets.new.push(lead);
+    });
+    board.innerHTML=PIPELINE_STAGES.map(stage=>{
+      const leads=buckets[stage.id]||[];
+      return '<div class="pipeline-column" data-stage="'+stage.id+'">'
+        +'<div class="pipeline-column-header">'
+        +'<span class="pipeline-column-title">'+escapeHtml(stage.label)+'</span>'
+        +'<span class="pipeline-column-count">'+leads.length+'</span>'
+        +'</div>'
+        +'<div class="pipeline-column-body" data-stage="'+stage.id+'">'
+        +(leads.length?leads.map(renderPipelineCard).join(''):'<div class="pipeline-empty">No leads</div>')
+        +'</div>'
+        +'</div>';
+    }).join('');
+    initPipelineDragDrop();
+  }
+  function initPipelineDragDrop(){
+    const board=document.getElementById('pipelineBoard');
+    if(!board||pipelineDropBound)return;
+    pipelineDropBound=true;
+    board.addEventListener('dragstart',e=>{
+      const card=e.target.closest('.pipeline-card');
+      if(!card)return;
+      pipelineDragLeadId=card.dataset.leadId;
+      pipelineDragFromStage=card.dataset.stage;
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',pipelineDragLeadId);
+      card.classList.add('dragging');
+    });
+    board.addEventListener('dragend',e=>{
+      const card=e.target.closest('.pipeline-card');
+      if(card)card.classList.remove('dragging');
+      document.querySelectorAll('.pipeline-column-body.drag-over').forEach(el=>el.classList.remove('drag-over'));
+      pipelineDragLeadId=null;
+      pipelineDragFromStage=null;
+    });
+    board.addEventListener('dragover',e=>{
+      const col=e.target.closest('.pipeline-column-body');
+      if(!col)return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      document.querySelectorAll('.pipeline-column-body.drag-over').forEach(el=>{if(el!==col)el.classList.remove('drag-over');});
+      col.classList.add('drag-over');
+    });
+    board.addEventListener('dragleave',e=>{
+      const col=e.target.closest('.pipeline-column-body');
+      if(col&&!col.contains(e.relatedTarget))col.classList.remove('drag-over');
+    });
+    board.addEventListener('drop',e=>{
+      const col=e.target.closest('.pipeline-column-body');
+      if(!col)return;
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const newStage=col.dataset.stage;
+      if(!pipelineDragLeadId||!newStage||newStage===pipelineDragFromStage)return;
+      movePipelineLeadStage(pipelineDragLeadId,newStage,pipelineDragFromStage);
+    });
+  }
+  async function movePipelineLeadStage(leadId,newStage,previousStage){
+    if(!leadId||!newStage||newStage===previousStage)return;
+    syncLeadStage(leadId,newStage);
+    renderPipeline();
+    if(filteredLeads.length)renderLeads(filteredLeads);
+    try{
+      const res=await fetch(API_BASE+'/api/leads/'+leadId+'/stage',{method:'PATCH',headers:authH(),body:JSON.stringify({stage:newStage})});
+      if(!res.ok){
+        const err=await res.json().catch(()=>({}));
+        throw new Error(err.error||'Could not update lead stage.');
+      }
+    }catch(e){
+      syncLeadStage(leadId,previousStage);
+      renderPipeline();
+      if(filteredLeads.length)renderLeads(filteredLeads);
+      alert(e.message||'Could not update lead stage. Please try again.');
+    }
+  }
   function renderStageBadge(lead){
     const stage=getLeadStage(lead);
     const label=STAGE_LABELS[stage]||'New';
@@ -1179,6 +1332,7 @@
     if(match)match.stage=stage;
     const stageEl=document.getElementById('modalLeadStage');
     if(stageEl&&lead)stageEl.innerHTML=renderStageBadge(lead);
+    if(isPipelineViewVisible())renderPipeline();
   }
   async function postLeadActivity(type){
     const lead=openLeadIndex!=null?filteredLeads[openLeadIndex]:null;
