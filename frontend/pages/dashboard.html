@@ -172,6 +172,15 @@
     .pipeline-card-time{font-size:0.72rem;color:var(--text-muted);white-space:nowrap}
     .pipeline-stage-select{display:none;width:100%;margin-top:0.55rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:8px;padding:0.55rem 0.65rem;color:var(--text);font-family:'Inter',sans-serif;font-size:0.82rem;outline:none;min-height:44px}
     .pipeline-stage-select:focus{border-color:var(--gold)}
+    .sources-card{margin-bottom:1.25rem;padding:1.25rem 1.5rem}
+    .sources-card-header{margin-bottom:0.85rem}
+    .sources-list{display:flex;flex-direction:column;gap:0.65rem}
+    .sources-row{display:flex;align-items:flex-start;justify-content:space-between;gap:0.85rem;padding:0.75rem 0.85rem;background:var(--bg);border:1px solid var(--border-subtle);border-radius:10px;max-width:100%;box-sizing:border-box}
+    .sources-row-main{min-width:0;flex:1}
+    .sources-row-label{font-family:'Space Grotesk',sans-serif;font-size:0.92rem;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;overflow-wrap:anywhere}
+    .sources-row-sub{font-size:0.74rem;color:var(--text-muted);margin-top:0.2rem;line-height:1.4;word-break:break-word;overflow-wrap:anywhere}
+    .sources-row-count{font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:var(--gold);white-space:nowrap;flex-shrink:0}
+    .sources-empty{font-size:0.82rem;color:var(--text-muted);padding:0.5rem 0}
     .no-results{text-align:center;padding:3.5rem 2rem;background:var(--surface);border:1px solid var(--border-subtle);border-radius:16px}
     .no-results-icon{font-size:2.5rem;margin-bottom:0.75rem}
     .no-results-title{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:0.4rem;color:var(--text)}
@@ -427,6 +436,12 @@
         <div style="position:relative;height:280px;max-width:100%">
           <canvas id="leadsChart"></canvas>
         </div>
+      </div>
+      <div class="chart-card sources-card" id="leadSourcesCard">
+        <div class="sources-card-header">
+          <div class="setting-label">Top sources</div>
+        </div>
+        <div class="sources-list" id="leadSourcesPanel"><div class="sources-empty">Loading…</div></div>
       </div>
       <div class="leads-toolbar">
         <div class="search-wrap">
@@ -900,6 +915,7 @@
   }
 
   async function loadLeads(){
+    loadLeadSources();
     try{
       const res=await fetch(API_BASE+'/api/leads?limit=500',{headers:authH()});
       if(res.status===401){logout();return;}
@@ -912,6 +928,67 @@
       if(isPipelineViewVisible())renderPipeline();
     }catch(e){
       document.getElementById('leadsList').innerHTML='<div class="no-results"><div class="no-results-icon">⚠</div><div class="no-results-title">Connection error</div><div class="no-results-sub">Could not load leads. Please refresh.</div></div>';
+    }
+  }
+
+  function formatSourceDisplay(source){
+    if(source.listing_address)return source.listing_address;
+    if(source.source_page==='Direct / Unknown')return 'Direct / Unknown';
+    try{
+      const u=new URL(source.source_page);
+      const path=u.pathname.replace(/\/+$/,'')||'/';
+      const label=u.hostname+(path==='/'?'':path);
+      return label.length>60?label.slice(0,57)+'…':label;
+    }catch(e){
+      const clean=String(source.source_page).replace(/\?.*$/,'').replace(/#.*$/,'');
+      return clean.length>60?clean.slice(0,57)+'…':clean;
+    }
+  }
+  function formatSourceSubtext(source){
+    if(!source.listing_address||source.source_page==='Direct / Unknown')return '';
+    try{
+      const u=new URL(source.source_page);
+      const path=u.pathname.replace(/\/+$/,'')||'/';
+      const label=u.hostname+(path==='/'?'':path);
+      return label.length>80?label.slice(0,77)+'…':label;
+    }catch(e){
+      const clean=String(source.source_page).replace(/\?.*$/,'').replace(/#.*$/,'');
+      return clean.length>80?clean.slice(0,77)+'…':clean;
+    }
+  }
+  function renderLeadSources(sources){
+    const panel=document.getElementById('leadSourcesPanel');
+    if(!panel)return;
+    const top=(sources||[]).slice(0,5);
+    if(!top.length){
+      panel.innerHTML='<div class="sources-empty">No lead sources yet</div>';
+      return;
+    }
+    panel.innerHTML=top.map(source=>{
+      const label=formatSourceDisplay(source);
+      const sub=formatSourceSubtext(source);
+      const latest=source.latest?formatActivityTime(source.latest):'';
+      return '<div class="sources-row">'
+        +'<div class="sources-row-main">'
+        +'<div class="sources-row-label">'+escapeHtml(label)+'</div>'
+        +(sub?'<div class="sources-row-sub">'+escapeHtml(sub)+'</div>':'')
+        +(latest?'<div class="sources-row-sub">Latest '+escapeHtml(latest)+'</div>':'')
+        +'</div>'
+        +'<div class="sources-row-count">'+source.count+' lead'+(source.count===1?'':'s')+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  async function loadLeadSources(){
+    const panel=document.getElementById('leadSourcesPanel');
+    if(!panel)return;
+    try{
+      const res=await fetch(API_BASE+'/api/leads/sources',{headers:authH()});
+      if(res.status===401){logout();return;}
+      if(!res.ok)throw new Error('Failed to load lead sources');
+      const data=await res.json();
+      renderLeadSources(data.sources||[]);
+    }catch(e){
+      panel.innerHTML='<div class="sources-empty">Could not load lead sources.</div>';
     }
   }
 

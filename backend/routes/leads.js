@@ -59,6 +59,28 @@ function getOwnedLead(id, clientId) {
   return db.prepare('SELECT * FROM leads WHERE id = ? AND client_id = ?').get(id, clientId);
 }
 
+// Normalize URLs for listing matching: trim, lowercase host, strip query/hash/trailing slash.
+function normalizeSourceUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    const path = parsed.pathname.replace(/\/+$/, '') || '/';
+    return `${parsed.protocol}//${parsed.host}${path}`.toLowerCase();
+  } catch {
+    return trimmed.replace(/#.*$/, '').replace(/\?.*$/, '').replace(/\/+$/, '').toLowerCase();
+  }
+}
+
+function matchListingAddress(sourcePage, exactMap, normMap) {
+  if (!sourcePage || sourcePage === 'Direct / Unknown') return null;
+  if (exactMap.has(sourcePage)) return exactMap.get(sourcePage);
+  const normalized = normalizeSourceUrl(sourcePage);
+  if (normalized && normMap.has(normalized)) return normMap.get(normalized);
+  return null;
+}
+
 // Chatbot posts lead here (replaces Formspree)
 const leadWebhookLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -128,6 +150,50 @@ router.get('/stats', clientAuth, (req, res) => {
     thisWeek: db.prepare("SELECT COUNT(*) as c FROM leads WHERE client_id = ? AND created_at >= datetime('now','-7 days')").get(id).c,
     hot:      hotCount,
   });
+});
+
+router.get('/sources', clientAuth, (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        CASE
+          WHEN source_page IS NULL OR TRIM(source_page) = '' THEN 'Direct / Unknown'
+          ELSE source_page
+        END AS source_page,
+        COUNT(*) AS count,
+        MAX(created_at) AS latest
+      FROM leads
+      WHERE client_id = ?
+      GROUP BY 1
+      ORDER BY count DESC, latest DESC
+    `).all(req.clientId);
+
+    const listings = db.prepare(`
+      SELECT url, address FROM listings
+      WHERE client_id = ? AND url IS NOT NULL AND TRIM(url) != ''
+    `).all(req.clientId);
+
+    const exactMap = new Map();
+    const normMap = new Map();
+    listings.forEach((listing) => {
+      const url = listing.url.trim();
+      exactMap.set(url, listing.address);
+      const normalized = normalizeSourceUrl(url);
+      if (normalized) normMap.set(normalized, listing.address);
+    });
+
+    const sources = rows.map((row) => ({
+      source_page: row.source_page,
+      count: row.count,
+      latest: row.latest,
+      listing_address: matchListingAddress(row.source_page, exactMap, normMap),
+    }));
+
+    res.json({ sources });
+  } catch (e) {
+    console.error('Lead sources error:', e.message);
+    res.status(500).json({ error: 'Could not load lead sources' });
+  }
 });
 
 router.patch('/:id/read', clientAuth, (req, res) => {
