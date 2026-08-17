@@ -2,9 +2,22 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 const { db } = require('../db');
 
-router.post('/client/login', (req, res) => {
+function createLoginLimiter() {
+  return rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 8,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res) => {
+      res.status(429).json({ error: 'Too many login attempts, try again later.' });
+    },
+  });
+}
+
+router.post('/client/login', createLoginLimiter(), (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   const client = db.prepare('SELECT * FROM clients WHERE email = ?').get(email.toLowerCase().trim());
@@ -15,7 +28,7 @@ router.post('/client/login', (req, res) => {
   res.json({ token, client: { id: client.id, name: client.name, email: client.email, agencyName: client.agency_name, website: client.website } });
 });
 
-router.post('/admin/login', (req, res) => {
+router.post('/admin/login', createLoginLimiter(), (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   const admin = db.prepare('SELECT * FROM admin WHERE email = ?').get(email.toLowerCase().trim());
