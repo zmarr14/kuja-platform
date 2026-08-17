@@ -137,6 +137,12 @@ if (!leadCols.includes('stage')) {
   db.exec("ALTER TABLE leads ADD COLUMN stage TEXT DEFAULT 'new'");
   console.log('✅ Migration: added stage column to leads');
 }
+if (!leadCols.includes('followup_stage')) {
+  db.exec('ALTER TABLE leads ADD COLUMN followup_stage INTEGER DEFAULT 0');
+  console.log('✅ Migration: added followup_stage column to leads');
+  db.exec('UPDATE leads SET followup_stage = 1 WHERE COALESCE(followup_sent, 0) = 1 AND COALESCE(followup_stage, 0) = 0');
+  console.log('✅ Migration: synced followup_stage for legacy followup_sent records');
+}
 
 function seedAdmin() {
   // Seed admin account
